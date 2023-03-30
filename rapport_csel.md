@@ -1,4 +1,5 @@
-### Tanguy Dietrich & Kirill Goundiaev - printemps 2023
+### Tanguy Dietrich & Kirill Goundiaev
+### Printemps 2023
 # Rapport CSEL
 
 ## Préambule
@@ -7,7 +8,7 @@ Ce travail repose sur la théorie et les instructions données lors du cours CSE
 ## Introduction
 Le but de ce travail est de mettre en place un environnement de travail pour une cible embarquée, la compréhension de différentes zones de mémoire, développement de module pour le kernel linux, ainsi que d'application.
 
-## Environnement Linux embarqué
+## 1. Environnement Linux embarqué
 ### Mise en place de la machine hôte
 Pour mener à bien ce travail, nous avons besion d'une machine hôte sous Linux, Windows ou OSx et des logiciels suivants:
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
@@ -51,9 +52,9 @@ Maintenant que nous disposons de nos images, nous devons les extraire du contain
     /usr/local/bin/sync-images.sh
 ```
 
-En utilisant Balena Etcher, nous flaschons notre catre SD avec l'image `buildroot-images/sdcard.img`.
+En utilisant Balena Etcher, nous flashons notre catre SD avec l'image `buildroot-images/sdcard.img`.
 
-En insérant la carte SD dans la cible et la démmarant, nous pouovons observer la séquance de lancement de U-Boot avec une comminucation série. Enfin, nous pourrons nous connecté une fois le boot terminé avec le login `root` sans mot de passe???
+En insérant la carte SD dans la cible et la démmarant, nous pouovons observer la séquance de lancement de U-Boot avec une comminucation série (cable série USB). Enfin, nous pourrons nous connecté une fois le boot terminé avec le login `root` _**sans mot de passe**_
 
 # TODO ajouter image de lancement?..
 
@@ -72,25 +73,85 @@ Une fois ces manipulations faites, nous pouvons tester la connexion avec un ping
     ssh root@192.168.0.14
 ```
 
-> Note à verifier\
+> _Note / supposition à verifier_\
 > L'adresse IP de la cible est défini au moment du boot. Elle est écrite en dur, mais nous pouvons la modifier. \
 > Les fichiers `/workspace/boot-scripts/boot_cifs.cmd` et `/workspace/config/board/friendlyarm/nanopi-neo-plus2/rootfs_overlay/etc/network/interfaces` \
-> Une autre possibilité serait de changer la variable d'environnement dans l'U-Boot pour donner une nouvelle adresse IP.
+> Une autre possibilité serait de changer la variable d'environnement dans l'U-Boot pour donner une nouvelle adresse IP ou directement changer sous Linux.
 
 La commande `uname -a` nous permet de voir le système d'exploitation de la cible.
 
 ### Mise en place de l’espace de travail (workspace) sous CIFS/SMB
+Cette étape nous permettra de partager notre répertoire de travail avec la cible. Ce que donnera un access directe depuis la cible et nous évitera les transferts de fichiers.\
+Pour effectuer l'attachement du workspace nous devons disposer du dossier `/workspace` sur la cible.
+```sh 
+mkdir -p /workspace
+# -p, --parents
+#       no error if existing,\
+#       make parent directories as needed
+```
+Pour attacher et détacher le dossier manuellement:
+```sh
+mount -t cifs -o vers=1.0,username=root,password=toor,port=1445,noserverino //192.168.0.4/workspace /workspace
+
+umount /workspace
+```
+
+Il est possible d'automatiser le processus éditant le fichier `/etc/fstab` en ajoutant la ligne:
+```sh
+//192.168.0.4/workspace /workspace cifs vers=1.0,username=root,password=toor,port=1445,noserverino
+```
+Cela permet d'utiliser la commande `mount -a` pour effectuer tout les montage qui ont été paramétré.
+
+_possibilité d'ajouter `mount -a` dans un scritpt de démarage? (nécessaire?)_
 
 ### Génération d’applications sur la machine de développement hôte
+L'example de Makefile ci-dessous donne les paths utile pour la compilation croisée.
+
+```Makefile
+# Makefile toolchain part
+TOOLCHAIN_PATH=/buildroot/output/host/usr/bin/
+TOOLCHAIN=$(TOOLCHAIN_PATH)aarch64-linux-
+
+# Makefile common part
+CC=$(TOOLCHAIN)gcc
+LD=$(TOOLCHAIN)gcc
+AR=$(TOOLCHAIN)ar
+CFLAGS+=-Wall -Wextra -g -c -mcpu=cortex-a53 -O0 -MD -std=gnu11
+```
+
 
 ### Debugging de l’application sur la cible (VS-Code)
+Pour plus d'[infos](https://mse-csel.github.io/website/assignments/environnement/#debugging-de-lapplication-sur-la-cible-vs-code)
 
 ### Mise en place de l’environnement pour le développement du noyau sous CIFS/SMB
 
 ### Questions
 1. Comment faut-il procéder pour générer l’U-Boot ?
+    
+    On peut se déplacer dans le dossier `/builroot` et executer la commande `make` pour compiler complétement le builroot qui contient également U-Boot. `make` utilise la fichier `.config` dans lequel se touvent toutes les informations nöcessaire à la compilation.
+
 2. Comment peut-on ajouter et générer un package supplémentaire dans le Buildroot ?
+
+    Dans le dossier `/buildroot` nous effectuons la commande `make menuconfig`  qui nous ouvre fenêtre de parametragde de buildroot. Puis, dans `Target packages` nous pouvons donc y ajouter des packages supplémentaires. Pour la génération, il suffira de refaire un `make`.
+
 3. Comment doit-on procéder pour modifier la configuration du noyau Linux ?
+
+    Denouveau dans `/buildroot` avec la commande `make menuconfig`, nous selectionons les paramètres dans `Kernel`.    
+
 4. Comment faut-il faire pour générer son propre rootfs ?
+
+    Les paramètres de rootfs peuvent également être modifié dans `make menuconfig` de `/buildroot` sous la rubrique `Filesastem images`. Puis, il faudra faire une compilation, après quoi effacer l'ancien rootfs et y extraire le nouveau :
+
+    ```sh
+    rm -Rf /rootfs/*
+    tar xf /buildroot/output/images/rootfs.tar -C /rootfs
+    ```
+
 5. Comment faudrait-il procéder pour utiliser la carte eMMC en lieu et place de la carte SD ?
+
+    Il nous faudrait transferet tout ce qui se trouve sur la carte SD dans la carte eMMC, à savoit l'U-Boot, le Kernel Linux, ainsi que les differents système de fichier.
+
+>    Il faudra peut-être préciser au _sunxi-spl_, le booteur initial de NanoPi, l'emplacement d'U-Boot.
+
+
 6. Dans le support de cours, on trouve différentes configurations de l’environnement de développement. Qu’elle serait la configuration optimale pour le développement uniquement d’applications en espace utilisateur ?
