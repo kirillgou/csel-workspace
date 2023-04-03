@@ -1,6 +1,7 @@
 ### Tanguy Dietrich & Kirill Goundiaev
 ### Printemps 2023
 # Rapport CSEL
+# Environnement Linux embarqué et programmation noyau Linux
 
 ## Préambule
 Ce travail repose sur la théorie et les instructions données lors du cours CSEL faisant partie du cursus MES de la HES-SO. Ces informations sont disponible sur le [site du cours](https://mse-csel.github.io/website/). Une base de code est également donnée sur le [git du cours](https://github.com/mse-csel/csel-workspace).
@@ -42,7 +43,7 @@ Une fois que la compilation est faite, nous pouvons enlever l'ancien rootfs s'il
     tar xf /buildroot/output/images/rootfs.tar -C /rootfs
 ```
 > Note\
->Vous pouvez aussi utiliser les script `/usr/local/bin/delete-rootfs.sh` et `/usr/local/bin/extract-rootfs.sh` présents dans l’image Docker.
+> Nous pouvons aussi utiliser les script `/usr/local/bin/delete-rootfs.sh` et `/usr/local/bin/extract-rootfs.sh` présents dans l’image Docker.
 
 Maintenant que nous disposons de nos images, nous devons les extraire du container vers notre machine hôte afin de graver une carte SD. Pour ce faire, nous pouvons utiliser la commande:
 ```sh 
@@ -55,8 +56,7 @@ Maintenant que nous disposons de nos images, nous devons les extraire du contain
 En utilisant Balena Etcher, nous flashons notre catre SD avec l'image `buildroot-images/sdcard.img`.
 
 En insérant la carte SD dans la cible et la démmarant, nous pouovons observer la séquance de lancement de U-Boot avec une comminucation série (cable série USB). Enfin, nous pourrons nous connecté une fois le boot terminé avec le login `root` _**sans mot de passe**_
-
-# TODO ajouter image de lancement?..
+![First Strart](./img_rapport/first_start.png "First Start")
 
 ### Configuration pour la communication réseau
 Notre sible a été configuré avec l'adresse 192.168.0.14. Il nous est proposé de configurer notre machine hôte avec l'adresse 192.168.0.4, afin de pouvoir communique avec cette derniere à travers le réseau.  
@@ -72,11 +72,11 @@ Une fois ces manipulations faites, nous pouvons tester la connexion avec un ping
 ```sh
     ssh root@192.168.0.14
 ```
-
+# TODO modiyf : l'ip doit être changer dans le script pour l'U-Boot ainsi que dans l'overlay pour le linux 
 > _Note / supposition à verifier_\
-> L'adresse IP de la cible est défini au moment du boot. Elle est écrite en dur, mais nous pouvons la modifier. \
-> Les fichiers `/workspace/boot-scripts/boot_cifs.cmd` et `/workspace/config/board/friendlyarm/nanopi-neo-plus2/rootfs_overlay/etc/network/interfaces` \
-> Une autre possibilité serait de changer la variable d'environnement dans l'U-Boot pour donner une nouvelle adresse IP ou directement changer sous Linux.
+> L'adresse IP de la cible est défini au moment du boot, puis au démarrage de Linux. Elle est écrite en dur, mais nous pouvons la modifier. \
+> Les fichiers `/workspace/boot-scripts/boot_cifs.cmd` et `/workspace/config/board/friendlyarm/nanopi-neo-plus2/rootfs_overlay/etc/network/interfaces` contiennent les informations dont nous avons besion. \
+> Il suffira de recréer une image (sans recompiler le kernel) et de la déployer.
 
 La commande `uname -a` nous permet de voir le système d'exploitation de la cible.
 
@@ -149,9 +149,56 @@ Pour plus d'[infos](https://mse-csel.github.io/website/assignments/environnement
 
 5. Comment faudrait-il procéder pour utiliser la carte eMMC en lieu et place de la carte SD ?
 
-    Il nous faudrait transferet tout ce qui se trouve sur la carte SD dans la carte eMMC, à savoit l'U-Boot, le Kernel Linux, ainsi que les differents système de fichier.
+    Il nous faudrait transferet tout ce qui se trouve sur la carte SD dans la carte eMMC, à savoit l'U-Boot, le Kernel Linux, ainsi que les differents système de fichier. Il nous faura créer une partition par entité à mettre sur la carte eMMC.
 
->    Il faudra peut-être préciser au _sunxi-spl_, le booteur initial de NanoPi, l'emplacement d'U-Boot.
+    > Il faudra peut-être préciser au _sunxi-spl_, le booteur initial de NanoPi, l'emplacement d'U-Boot.
 
 
 6. Dans le support de cours, on trouve différentes configurations de l’environnement de développement. Qu’elle serait la configuration optimale pour le développement uniquement d’applications en espace utilisateur ?
+
+    Pour déveleppement d'application en espace utilisateur, nous aurons besion d'une flexibilité au niveau de l'usrfs, car c'est à cette endroit que sera déployé l'application. De ce fait, nous pouvons déployer dés le début l'U-Boot, le kernel, ainsi que le rootfs sur la carte SD ou eMMC, afin de ne plus intéragir phisyquement avec notre cible. Puis, nous attacherons l'usrfs se trouvant sur la machine hôte en utilisant CIFS/SMB, ce qui nous permettrait de faire la compilation sur la mchine hôte directement dans l'usrfs et de tester avec la cible en accedant au même usrfs.
+
+### Todo ce qui a été apris 
+### Todo remarque et chose a retenir
+### feedback personnel
+
+
+---
+## 2. Programmation Noyau
+## 2.1 Modules noyaux
+
+Le premier exersice nous propose de consevoir et générer un module noyau [out of tree](https://mse-csel.github.io/website/lecture/programmation-noyau/modules/module-gen/#generation-out-of-tree). C'est donc un module qui est à l'exterieure de l'arboraissance du noyau. Cela nous permet de généré le module indépendament du kernel, mais il ne pourra pas être linké statiquement à ce dernier. En s'inspirant de l'[example](https://mse-csel.github.io/website/lecture/programmation-noyau/modules/module/#squelette-dun-module), nous avons créer notre module qui nous dis bonjour et aurevoir. Pour instancier le module il nous faut nous rendre dans le répertoire oú se trouve notre module au format `*.ko` et executer la commande `insmod *.ko`. Pour le retirer, nous utilisons la commande `rmmod <module>`. Le affichage effectué par le module ne sont pas visible sur le terminal dans l'espace utilisateur. Pour les visioner, nous devons utiliser la commande `dmesg`. Les commande `lsmod` et `cat /proc/modules` nous permettent de visualiser les modules installés. 
+
+Pour ajouter aux modules référencé, nous devons installer le module en ajoutant la comande `make install` aux Makefile de notre module. Cela ajoutera notre mode dans `/lib/modules/<kernel_version>/modules.dep`, qui référance tout les modes et leurs dépendances.
+```c
+    MODPATH := /rootfs # production mode install:
+    install:
+        $(MAKE) -C $(KDIR) M=$(PWD) INSTALL_MOD_PATH=$(MODPATH) modules_install
+```
+Pour l'installer, nous effectuons la commande `sudo make install` sur la machine hôte. Avec modprobe, nous pouvons :
+```sh
+Usage: modprobe [-alrqvsD] MODULE [SYMBOL=VALUE]...
+
+        -a      Load multiple MODULEs
+        -l      List (MODULE is a pattern)
+        -r      Remove MODULE (stacks) or do autoclean
+        -q      Quiet
+        -v      Verbose
+        -s      Log to syslog
+        -D      Show dependencies
+```
+
+
+> Note.\
+Le [makefile d'example](https://mse-csel.github.io/website/lecture/programmation-noyau/modules/module-gen/#generation-out-of-tree) propose d'utiliser `TOOLS := /buildroot/output/host/usr/bin/aarch64-linux-gnu-`, qui est incorrect, nous avons utiliser `TOOLS := /buildroot/output/host/usr/bin/aarch64-buildroot-linux-gnu-` afin dde compiler.\
+\
+Il faut également ajouter `clean` pour la commande `make clean`
+
+# Apris 
+Utilisation de make de facons récursive, extrainement utile et puissant.
+
+
+
+
+
+# 31.03.23 on commance: sysfs (Exercice #5: Développer un pilote)
