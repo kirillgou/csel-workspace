@@ -1,11 +1,18 @@
+export PATH := /buildroot/output/host/usr/sbin$\
+	:/buildroot/output/host/usr/bin/$\
+	:/buildroot/output/host/sbin$\
+	:/buildroot/output/host/bin/$\
+	:$(PATH)
+
 # Part executed when called from kernel build system
 ifneq ($(KERNELRELEASE),)
-obj-m += mod_ex_noyau_1.o          ## name of the generated module
-mod_ex_noyau_1-objs := my_module.o  ## list of objets needed by that module
-CFLAGS_skeleton := -DDEBUG   ## to enable printing of debugging messages
+obj-m += mod_ex_noyau_4.o          ## name of the generated module
+mod_ex_noyau_4-objs := my_module.o  ## list of objets needed by that module
+CFLAGS_my_module.o := -DDEBUG   ## to enable printing of debugging messages
 
 # Part executed when called from standard make in the module source directory
 else
+include ../../../src/kernel_settings
 CPU := arm64
 KDIR := /buildroot/output/build/linux-5.15.21/
 TOOLS := /buildroot/output/host/usr/bin/aarch64-buildroot-linux-gnu-

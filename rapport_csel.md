@@ -3,14 +3,14 @@
 # Rapport CSEL
 # Environnement Linux embarqué et programmation noyau Linux
 
-## Préambule
+# Préambule
 Ce travail repose sur la théorie et les instructions données lors du cours CSEL faisant partie du cursus MES de la HES-SO. Ces informations sont disponible sur le [site du cours](https://mse-csel.github.io/website/). Une base de code est également donnée sur le [git du cours](https://github.com/mse-csel/csel-workspace).
 
-## Introduction
+# Introduction
 Le but de ce travail est de mettre en place un environnement de travail pour une cible embarquée, la compréhension de différentes zones de mémoire, développement de module pour le kernel linux, ainsi que d'application.
 
-## 1. Environnement Linux embarqué
-### Mise en place de la machine hôte
+# 1. Environnement Linux embarqué
+## Mise en place de la machine hôte
 Pour mener à bien ce travail, nous avons besion d'une machine hôte sous Linux, Windows ou OSx et des logiciels suivants:
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
 - git
@@ -25,7 +25,7 @@ Une fois ouvert dans un Container, nous executons le scripte `get-buildroot.sh` 
 - RootFS, le système fichier racine est le répertroire principal contenant des répertoires, logiciels de base du système et des logiciel d'applications.
 - Bootloader, dans notre cas U-Boot qui est le premier programme a être exécuté au lancement du système. Il se chargera d'effectuer certaines verification, pius de démarrer le système principal sous Linux.
 
-### Compilation et lancement de la cible
+## Compilation et lancement de la cible
 Le noyeau et le rootfs peut être configuer dans buildroot avec les commandes:
 
 ```sh
@@ -58,7 +58,7 @@ En utilisant Balena Etcher, nous flashons notre catre SD avec l'image `buildroot
 En insérant la carte SD dans la cible et la démmarant, nous pouovons observer la séquance de lancement de U-Boot avec une comminucation série (cable série USB). Enfin, nous pourrons nous connecté une fois le boot terminé avec le login `root` _**sans mot de passe**_
 ![First Strart](./img_rapport/first_start.png "First Start")
 
-### Configuration pour la communication réseau
+## Configuration pour la communication réseau
 Notre sible a été configuré avec l'adresse 192.168.0.14. Il nous est proposé de configurer notre machine hôte avec l'adresse 192.168.0.4, afin de pouvoir communique avec cette derniere à travers le réseau.  
 > Notes
 >- IP :   192.168.0.4
@@ -80,7 +80,7 @@ Une fois ces manipulations faites, nous pouvons tester la connexion avec un ping
 
 La commande `uname -a` nous permet de voir le système d'exploitation de la cible.
 
-### Mise en place de l’espace de travail (workspace) sous CIFS/SMB
+## Mise en place de l’espace de travail (workspace) sous CIFS/SMB
 Cette étape nous permettra de partager notre répertoire de travail avec la cible. Ce que donnera un access directe depuis la cible et nous évitera les transferts de fichiers.\
 Pour effectuer l'attachement du workspace nous devons disposer du dossier `/workspace` sur la cible.
 ```sh 
@@ -104,7 +104,7 @@ Cela permet d'utiliser la commande `mount -a` pour effectuer tout les montage qu
 
 _possibilité d'ajouter `mount -a` dans un scritpt de démarage? (nécessaire?)_
 
-### Génération d’applications sur la machine de développement hôte
+## Génération d’applications sur la machine de développement hôte
 L'example de Makefile ci-dessous donne les paths utile pour la compilation croisée.
 
 ```Makefile
@@ -120,12 +120,15 @@ CFLAGS+=-Wall -Wextra -g -c -mcpu=cortex-a53 -O0 -MD -std=gnu11
 ```
 
 
-### Debugging de l’application sur la cible (VS-Code)
+## Debugging de l’application sur la cible (VS-Code)
 Pour plus d'[infos](https://mse-csel.github.io/website/assignments/environnement/#debugging-de-lapplication-sur-la-cible-vs-code)
+Cest pour modifier la variable dans U-Boot poour linker le kernel.
 
-### Mise en place de l’environnement pour le développement du noyau sous CIFS/SMB
+## Mise en place de l’environnement pour le développement du noyau sous CIFS/SMB
+Executer la [marche a suivre](https://mse-csel.github.io/website/assignments/environnement/#debugging-de-lapplication-sur-la-cible-vs-code)
 
-### Questions
+
+## Questions
 1. Comment faut-il procéder pour générer l’U-Boot ?
     
     On peut se déplacer dans le dossier `/builroot` et executer la commande `make` pour compiler complétement le builroot qui contient également U-Boot. `make` utilise la fichier `.config` dans lequel se touvent toutes les informations nöcessaire à la compilation.
@@ -158,19 +161,20 @@ Pour plus d'[infos](https://mse-csel.github.io/website/assignments/environnement
 
     Pour déveleppement d'application en espace utilisateur, nous aurons besion d'une flexibilité au niveau de l'usrfs, car c'est à cette endroit que sera déployé l'application. De ce fait, nous pouvons déployer dés le début l'U-Boot, le kernel, ainsi que le rootfs sur la carte SD ou eMMC, afin de ne plus intéragir phisyquement avec notre cible. Puis, nous attacherons l'usrfs se trouvant sur la machine hôte en utilisant CIFS/SMB, ce qui nous permettrait de faire la compilation sur la mchine hôte directement dans l'usrfs et de tester avec la cible en accedant au même usrfs.
 
-### Todo ce qui a été apris 
-### Todo remarque et chose a retenir
-### feedback personnel
+## Todo ce qui a été apris 
+## Todo remarque et chose a retenir
+## feedback personnel
 
 
 ---
-## 2. Programmation Noyau
-## 2.1 Modules noyaux
-
+# 2. Programmation Noyau
+# 2.1 Modules noyaux
+## Exercice 1
 Le premier exersice nous propose de consevoir et générer un module noyau [out of tree](https://mse-csel.github.io/website/lecture/programmation-noyau/modules/module-gen/#generation-out-of-tree). C'est donc un module qui est à l'exterieure de l'arboraissance du noyau. Cela nous permet de généré le module indépendament du kernel, mais il ne pourra pas être linké statiquement à ce dernier. En s'inspirant de l'[example](https://mse-csel.github.io/website/lecture/programmation-noyau/modules/module/#squelette-dun-module), nous avons créer notre module qui nous dis bonjour et aurevoir. Pour instancier le module il nous faut nous rendre dans le répertoire oú se trouve notre module au format `*.ko` et executer la commande `insmod *.ko`. Pour le retirer, nous utilisons la commande `rmmod <module>`. Le affichage effectué par le module ne sont pas visible sur le terminal dans l'espace utilisateur. Pour les visioner, nous devons utiliser la commande `dmesg`. Les commande `lsmod` et `cat /proc/modules` nous permettent de visualiser les modules installés. 
 
 Pour ajouter aux modules référencé, nous devons installer le module en ajoutant la comande `make install` aux Makefile de notre module. Cela ajoutera notre mode dans `/lib/modules/<kernel_version>/modules.dep`, qui référance tout les modes et leurs dépendances.
-```c
+```makefile
+    #besion de l'expor PATH pour faire modules_install
     MODPATH := /rootfs # production mode install:
     install:
         $(MAKE) -C $(KDIR) M=$(PWD) INSTALL_MOD_PATH=$(MODPATH) modules_install
@@ -194,8 +198,85 @@ Le [makefile d'example](https://mse-csel.github.io/website/lecture/programmation
 \
 Il faut également ajouter `clean` pour la commande `make clean`
 
-# Apris 
-Utilisation de make de facons récursive, extrainement utile et puissant.
+### Apris, remarque, feedback
+Utilisation de make de facons récursive, extrainement utile et puissant. Manipulation avec `modprob` facilite l'installation et le retrait des modules, ainsi que la gestion des dépendances. La gestion de dépendance n'a pas encore été testé, serait un plus.
+
+## Exercice 2
+Cette exercice à pour but de [passer de parammetres au module](https://mse-csel.github.io/website/lecture/programmation-noyau/modules/parameters/) lors de son initialisation. Nous réutilisons le code de l'exercice précédent.\
+Utilisation de macro [module_param](https://mse-csel.github.io/website/lecture/programmation-noyau/modules/parameters/).\ 
+Code ajouté :
+```c
+    /*my_module.c*/
+    #include <linux/moduleparam.h>  /* needed for module parameters */
+    static char* name = "Module ex 2";
+    module_param(name, charp, 0);
+    static int elements = 1;
+    module_param(elements, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    static int __init my_module_init(void){
+        pr_info("Name: %s\telement: %d\n", name, elements);
+        ...
+    }
+```
+```sh
+#passage de paramètres :
+insmod mod_ex_noyau_2.ko elements=1024 name="test_1"
+#chage param
+vi /sys/module/mod_ex_noyau_2/parameters/elements
+
+# avec modprobe ajouter fichier /etc/modprobe.conf et dedans:
+options mod_ex_noyau_2 elements=12 name="From modprobe"
+```
+### Apris, remarque, feedback
+Urtilisation des paramètres avec les modules, donner les drois de modificaition des paramètre.
+
+## Exercice 3
+Trouvez la signification des 4 valeurs affichées lorsque l’on tape la commande `cat /proc/sys/kernel/printk`.
+[Message logging with printk](https://www.kernel.org/doc/html/latest/core-api/printk-basics.html) nous apprend que les valeurs retournées par cette commande nous informe du _console_loglevel_ courrant.
+Elles corespondent au niveau courrant, par défaut, minimum et du boot-time. Le niveau peut être modifié avec la commande `echo 8 > /proc/sys/kernel/printk` (8 = print all messages to the console).
+La corespendance des niveaux:
+|   |   |   |   |   
+| Name      | String| Alias function|
+|---        |---    |---            |
+|KERN_EMERG | “0” | pr_emerg() |
+|KERN_ALERT | “1” | pr_alert() |
+|KERN_CRIT  | “2” | pr_crit()  |
+|KERN_ERR   | “3” | pr_err()|
+|KERN_WARNING|“4” | pr_warn()|
+|KERN_NOTICE| “5” | pr_notice()|
+|KERN_INFO  | “6” | pr_info()|
+|KERN_DEBUG | “7” | pr_debug() and pr_devel() if DEBUG is defined|
+|KERN_DEFAULT| “” | 
+|KERN_CONT  | “c” | pr_cont() |
+
+Le _log level_ définit l'importance du message de `printk(`_`log level`_` "Message: %s\n", arg);`. Si le niveau est supprérieure au niveau courrant, le message sera affiché directement dans le terminal.
+
+> Note pas sur d'avoir compris comment changer et surtout afficher..
+
+> Remarque. Nous avons remarqué que le print se fait dans le terminal série et pas le ssh. Donc fonctionne. Cependant, il faudrait voir s'il est possible de printer dans le terminal qui lance la commande pour le module.
+
+
+### Apris, remarque, feedback
+pas reussi a utiliser correctement les niveaux de message..
+
+## Exercice 4
+Cette exercice nous demande de faire de l'allocation dynamique de memoire au niveau du kernel. Pour cela, nous devrons utiliser la fonction `kmalloc()`.\
+Nous aurrons besoin de :\
+- [l'allocation dynamique](https://mse-csel.github.io/website/lecture/programmation-noyau/modules/malloc/#allocateur-kmalloc)
+- traitement des strings
+- [gestion de list](https://mse-csel.github.io/website/lecture/programmation-noyau/modules/bibliotheques/#exemple-de-liste-chainee)
+
+
+## Ajout personnel
+Nous avons jouter un scripte de lancement pour savoir plus facilement quand notre cible est prette pour que nous puissions s'y connecter en ssh. 
+```sh
+    # in /etc/init.d/S90kirillEasy 
+    #!/bin/sh
+    cd /sys/class/gpio/
+    echo 10 > export 
+    echo out > gpio10/direction 
+    echo 1 > gpio10/value
+```
+
 
 
 
