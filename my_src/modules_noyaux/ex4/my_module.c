@@ -21,7 +21,7 @@ seront émis afin de permettre le debugging du module.
 #include <linux/kernel.h> /* need for converting strings to int or others */
 #include <linux/list.h> /* need for using lists */
 
-#define MAX_STRING_SIZE 30
+#define MAX_STRING_SIZE 30000
 
 static char* text = "Module ex 4";
 module_param(text, charp, 0);
@@ -42,7 +42,7 @@ static LIST_HEAD (my_list);
 
 static int __init my_module_init(void){
     pr_info ("My_module say : 'hello'\n");
-    pr_info("Text: %s\telement: %d\n", text, elements);
+    // pr_info("Text: %s\telement: %d\n", text, elements);
     int i;
     for(i = 0; i < elements; i++){
         // create a new element
@@ -58,24 +58,27 @@ static int __init my_module_init(void){
             // add element at the end of the list 
             list_add_tail(&ele->list, &my_list); 
         }else{
-            printk(KERN_ERR "allocation fails !\n");
+            pr_err("allocation fails !\n");
         }
     }
 
     //print the list:
-    struct element* np;
-    list_for_each_entry(np, &my_list, list){
-        printk("%i : %s\n", np->value, np->text);
-    }
+    // struct element* np;
+    // list_for_each_entry(np, &my_list, list){
+    //     pr_debug("%i : %s\n", np->value, np->text);
+    // }
 
     return 0;
 }
 
 static void __exit my_module_exit(void){
     pr_info ("My_module say : 'bye'\n");
-    pr_info("Name: %s\telement: %d\n", text, elements);
-    // kfree (buffer);
-    // buffer = 0;
+    struct element *np, *np_temp ;
+    list_for_each_entry_safe(np, np_temp, &my_list, list) {
+        pr_debug("%i : %s\n", np->value, np->text);
+        list_del(&np->list);
+        kfree(np);
+    }
 }
 
 

@@ -265,6 +265,45 @@ Nous aurrons besoin de :\
 - traitement des strings
 - [gestion de list](https://mse-csel.github.io/website/lecture/programmation-noyau/modules/bibliotheques/#exemple-de-liste-chainee)
 
+> Attention à bien libérer l'éspace lors du exit
+
+### Apris, remarque, feedback
+Nous avons revu comment faire une allocation de mémoire au niveau kernel. Nous avvons également appris à utiliser les list avec la librairie list.h.
+
+## Exercice 5
+Cette exercice nous demande de récupérer les informations se trouvant dans des registres sur notre cible. Pour ce faire, nous devons acceder à des zones précises dans la mémoire. On utilise alors le MMIO memory-mapped I/O et un remapping dans la memoire virtuelle.
+
+> Note\
+L'utilisation de `request_mem_region` pose problème. La réservation ne se passe pas correctement. Nous avons également testé avec le code de correction fourni, et l'erreure est également présente.\
+Sans la reservation peut aussi fonctionner.\
+Avec la commande `cat /proc/iomem`, nous avons pu observer que cette espace est déjà reservé par :\
+    01c30000-01c3ffff : 1c30000.ethernet ethernet@1c30000
+
+> attention les données sont en BigEndian
+> Note\
+Les valeurs retournées pour la température sembles cohérente, mais sont pas exactement les même qu'avec la commande `cat /sys/class/thermal/thermal_zone0/temp`
+
+### Apris, remarque, feedback
+Nous avons appris la reservation de mémoire, ainsi que le fait qu'elle ne bloque pas le bon exécution de programme si elle échoue. Il faut également faire attention avec le Big et Little Endean.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Ajout personnel
 Nous avons jouter un scripte de lancement pour savoir plus facilement quand notre cible est prette pour que nous puissions s'y connecter en ssh. 
