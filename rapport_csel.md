@@ -270,12 +270,12 @@ Nous aurrons besoin de :\
 ### Apris, remarque, feedback
 Nous avons revu comment faire une allocation de mémoire au niveau kernel. Nous avvons également appris à utiliser les list avec la librairie list.h.
 
-## Exercice 5
+## Exercice 5: Accès aux entrées/sorties
 Cette exercice nous demande de récupérer les informations se trouvant dans des registres sur notre cible. Pour ce faire, nous devons acceder à des zones précises dans la mémoire. On utilise alors le MMIO memory-mapped I/O et un remapping dans la memoire virtuelle.
 
 > Note\
 L'utilisation de `request_mem_region` pose problème. La réservation ne se passe pas correctement. Nous avons également testé avec le code de correction fourni, et l'erreure est également présente.\
-Sans la reservation peut aussi fonctionner.\
+//TODO (ca sonne mal) : Sans la reservation peut aussi fonctionner.\
 Avec la commande `cat /proc/iomem`, nous avons pu observer que cette espace est déjà reservé par :\
     01c30000-01c3ffff : 1c30000.ethernet ethernet@1c30000
 
@@ -287,7 +287,30 @@ Les valeurs retournées pour la température sembles cohérente, mais sont pas e
 Nous avons appris la reservation de mémoire, ainsi que le fait qu'elle ne bloque pas le bon exécution de programme si elle échoue. Il faut également faire attention avec le Big et Little Endean.
 
 
+## Exercice 6: Threads du noyau
+Dans cette exercice, nous devons implémenté un module qui [lancera un threade](https://mse-csel.github.io/website/lecture/programmation-noyau/modules/threads/#creation-de-threads-dans-le-noyau) à son instatiation. Ce thread devra afficher un message toutes les 5 secondes. 
 
+Nous avons utiliser les fonctions proposé dans le cours pour faire cette exercice. A noter que le paramettre `namefmt` donné lors de l'initialisation `struct task_struct* kthread_run(int (*threadfn)(void *data), data namefmt,...);` peut être retrouvé en effectuant la commande `ps -aux` qui nous liste les processes en éxecution.
+
+### Apris, remarque, feedback
+Nous avons apprit à lancer les threads au niveau kernel. Tout comment en C, ils peuvent récupérer des données à leurs lancement à travers des structures de données. 
+
+
+##  Exercice 7: Mise en sommeil
+Le but de cette exercice est de synchroniser deux thread du noyau à l'aide d'events. Pour ce faire, nous aurons besion d'une queue d'attente, qui nous permettera d'informer un thread qu'une modification à été effectuée. Une fois le thread informé, il se reveillera et effectuera une verification sur la condition qui lui est donnée. Si la condition est remplie, il effectuera l'action qui lui est demandé. Sinon, il se remettra en sommeil.\
+Dans notre cas, la condition est une valeur de variable atomique. Cette variable nous permet d'effectuer des opérations atomiques et donc nous autorise un accès concurrent.\
+Le thread qui fera la notification (le reveil) incrémentera la variable atomique. Le thread qui fera l'attente (le sommeil) verifera la variable et la décrémentera. Si elle est positive, le thread qui attend effectuera l'action.\
+Afin de partager l'information entre deux threads, nous avons deux solutions :
+- utiliser une variable globale
+- utiliser une variable partagée
+
+Nous avons opter pour les varables partagées, même si elles sont plus complexes à mettre en place, nous trouvons que c'est une solution plus propre.\
+Pour partager les données entre les threads, nous avons utilisé une structure de données qui nous permet de stocker les données et de les passer en paramettre à nos fonctions.\
+Nos deux fonctions foctionnent correctement et donne les résultats attendu. A noter qu'il ne faut pas oublier le '\n' à la fin de la chaine de caractère pour que le message soit afficher imédiatement, sinon celà pour porter confusion lors des observations.
+
+### Apris, remarque, feedback
+Nous avons appris à utiliser les variables atomiques, ainsi que les queues d'attente. Il était particulierement intéressant de metre en place une execution concurrente avec une communication inter thread. C'est une notion que nous pensons peut être souvant utile. Nous avons également mis en place un affichage coloré que facilite la lecture des messages.
+ 
 
 
 

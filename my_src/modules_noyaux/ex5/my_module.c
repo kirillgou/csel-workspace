@@ -22,9 +22,7 @@ Les 2 registres de 32 bits de la MAC adresse sont aux adresses 0x01c3'0050 et 0x
 #include <linux/ioport.h> /* need for request and release mem_region */
 #include <linux/io.h> /* need for ioremap */
 
-// #define MAX_STRING_SIZE 30
-
-static char* text = "Module ex 4";
+static char* text = "Module ex 5";
 module_param(text, charp, 0);
 
 static int elements = 1;
