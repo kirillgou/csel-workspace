@@ -315,6 +315,8 @@ Nous avons appris à utiliser les variables atomiques, ainsi que les queues d'at
 Cette exercice nous demande de créer un module qui va nous permettre de récupérer les interruptions des switchs. Pour ce faire, nous devons utiliser (les fonctions)[https://mse-csel.github.io/website/lecture/programmation-noyau/modules/interruptions/#installation-des-routines-de-traitement-des-interruptions] `request_irq`, `gpio_to_irq` et `free_irq`.\
 Pour la gestion des GPIO nous avons utilisé la librairie gpio.h, plus particulierement les fonctions `gpio_is_valid` `gpio_request`, `gpio_direction_input` et `gpio_free`.\
 Après initialisation, si nous appuyons sur un des boutons, le terminal nous affiche le numéro d'interruption du bouton correspondant.\
+
+### Apris, remarque, feedback
 Le numéro du GPIO à utiliser peut être retrouvé dans (le schéma)[https://mse-csel.github.io/website/documentation/assets/Schematic_NanoHat_OLED_v1.4_1804.pdf].\
 La commande `cat /proc/interrupts` nous permet de voir les interruptions en cours:\
 ```sh
@@ -322,6 +324,26 @@ La commande `cat /proc/interrupts` nous permet de voir les interruptions en cour
     90:         42          0          0          0  sunxi_pio_edge   2 Edge      irq_k2
     91:         36          0          0          0  sunxi_pio_edge   3 Edge      irq_k3
 ```
+Attention à garder l'interruption en cours.\
+
+
+# 2.2 Pilotes de périphériques
+Quatre types de pilotes de périphériques sont disponibles dans le noyau Linux :\
+- pilotes orientés caractère (char device driver)
+- pilotes orientés bloc (block device driver)
+- pilotes orientés réseaux (network device driver)
+- pilotes orientés mémoire (uio device driver)
+
+
+## Exercice 1
+Il faut faire attention avec les adresses. Nous pouvons adresser uniquement depuis de début de la page d'adresse. De ce fait nous devons savoir quelle offset se trouve notre donnée.\
+Pour le faire, nous pouvons utiliser la fonction `getpagesize()` qui nous retourne la taille d'une page.\
+Pour avoir l'offset de notre donnée, nous devons faire `offset = adresse % getpagesize()`.\
+Puis nous pouvons obtenir l'adresse de la page avec `adresse_page = adresse - offset`.\
+De plus lorsque nous voulons acceder à une donnée, nous devons faire `regs + (offset + position * 4 )/sizeof(uint32_t)` ou `regs + offset / sizeof(uint32_t) + (position)`.\
+
+### Apris, remarque, feedback
+Nous avons appris à utiliser mmap au niveau utilisateur. Nous avons recontré des problèmes avec les adressage, que nous avons pu réger en nous aidant du code de correction fourni. De plus, il était compliqué de créer un Makefile pour compiler notre programme. Nous avons donc utilisé le Makefile fourni dans le dossier de correction. Nous pensons que ça serait une bonne idée d'avoir un petit explicatif sur les differents Makefile kernel et userspace.\
 
 
 
@@ -349,9 +371,6 @@ Nous avons jouter un scripte de lancement pour savoir plus facilement quand notr
     echo out > gpio10/direction 
     echo 1 > gpio10/value
 ```
-
-
-
 
 
 
