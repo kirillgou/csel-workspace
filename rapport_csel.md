@@ -296,7 +296,7 @@ Nous avons utiliser les fonctions proposé dans le cours pour faire cette exerci
 Nous avons apprit à lancer les threads au niveau kernel. Tout comment en C, ils peuvent récupérer des données à leurs lancement à travers des structures de données. 
 
 
-##  Exercice 7: Mise en sommeil
+## Exercice 7: Mise en sommeil
 Le but de cette exercice est de synchroniser deux thread du noyau à l'aide d'events. Pour ce faire, nous aurons besion d'une queue d'attente, qui nous permettera d'informer un thread qu'une modification à été effectuée. Une fois le thread informé, il se reveillera et effectuera une verification sur la condition qui lui est donnée. Si la condition est remplie, il effectuera l'action qui lui est demandé. Sinon, il se remettra en sommeil.\
 Dans notre cas, la condition est une valeur de variable atomique. Cette variable nous permet d'effectuer des opérations atomiques et donc nous autorise un accès concurrent.\
 Le thread qui fera la notification (le reveil) incrémentera la variable atomique. Le thread qui fera l'attente (le sommeil) verifera la variable et la décrémentera. Si elle est positive, le thread qui attend effectuera l'action.\
@@ -311,6 +311,17 @@ Nos deux fonctions foctionnent correctement et donne les résultats attendu. A n
 ### Apris, remarque, feedback
 Nous avons appris à utiliser les variables atomiques, ainsi que les queues d'attente. Il était particulierement intéressant de metre en place une execution concurrente avec une communication inter thread. C'est une notion que nous pensons peut être souvant utile. Nous avons également mis en place un affichage coloré que facilite la lecture des messages.
  
+## Exercice 8: Interruptions
+Cette exercice nous demande de créer un module qui va nous permettre de récupérer les interruptions des switchs. Pour ce faire, nous devons utiliser (les fonctions)[https://mse-csel.github.io/website/lecture/programmation-noyau/modules/interruptions/#installation-des-routines-de-traitement-des-interruptions] `request_irq`, `gpio_to_irq` et `free_irq`.\
+Pour la gestion des GPIO nous avons utilisé la librairie gpio.h, plus particulierement les fonctions `gpio_is_valid` `gpio_request`, `gpio_direction_input` et `gpio_free`.\
+Après initialisation, si nous appuyons sur un des boutons, le terminal nous affiche le numéro d'interruption du bouton correspondant.\
+Le numéro du GPIO à utiliser peut être retrouvé dans (le schéma)[https://mse-csel.github.io/website/documentation/assets/Schematic_NanoHat_OLED_v1.4_1804.pdf].\
+La commande `cat /proc/interrupts` nous permet de voir les interruptions en cours:\
+```sh
+    88:         31          0          0          0  sunxi_pio_edge   0 Edge      irq_k1
+    90:         42          0          0          0  sunxi_pio_edge   2 Edge      irq_k2
+    91:         36          0          0          0  sunxi_pio_edge   3 Edge      irq_k3
+```
 
 
 
