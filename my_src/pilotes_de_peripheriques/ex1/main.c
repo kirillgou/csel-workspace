@@ -71,6 +71,12 @@ int main()
     uint32_t cid_3 = *(regs + offset / sizeof(uint32_t) + (3));
     printf("CHIP_ID : %08x%08x%08x%08x\n", cid_0, cid_1, cid_2, cid_3);
 
+    // while (1)
+    // {
+    //     sleep(20);
+    //     printf("sleep done\n");
+    // }
+
     // Après utilisation, appel de l’opération munmap pour libérer l’espace mémoire
     munmap((void*)regs, page_size);
     // Fermeture du fichier

@@ -335,8 +335,11 @@ Quatre types de pilotes de périphériques sont disponibles dans le noyau Linux 
 - pilotes orientés mémoire (uio device driver)
 
 
-## Exercice 1
-Il faut faire attention avec les adresses. Nous pouvons adresser uniquement depuis de début de la page d'adresse. De ce fait nous devons savoir quelle offset se trouve notre donnée.\
+## Exercice 1: Pilotes orientés mémoire
+Cette exercice nous demande de créer un (pilote orienté mémoire)[https://mse-csel.github.io/website/lecture/programmation-noyau/pilotes/uio-driver/]. C'est le plus simple des pilotes à créer qui nous permet de mapper dans l'espace virtuel du processus les registres et zones mémoires.\
+Ce mapping se fait avec la fonction `mmap` qui prend en paramettre le fichier `/dev/mem` qui offre ce srvice par défaut sous Linux.\
+Cette methode permet d'acceder à la mémoire uniquement depuis l'application dévelopée, ne partageant pas cette information les autres parties du système à travers des fichciers partagés.\
+Il faut faire attention avec les adresses. Nous pouvons adresser uniquement depuis de début de la page d'adresse. De ce fait nous devons savoir à quelle offset de la page se trouve notre donnée.\
 Pour le faire, nous pouvons utiliser la fonction `getpagesize()` qui nous retourne la taille d'une page.\
 Pour avoir l'offset de notre donnée, nous devons faire `offset = adresse % getpagesize()`.\
 Puis nous pouvons obtenir l'adresse de la page avec `adresse_page = adresse - offset`.\
@@ -345,7 +348,9 @@ De plus lorsque nous voulons acceder à une donnée, nous devons faire `regs + (
 ### Apris, remarque, feedback
 Nous avons appris à utiliser mmap au niveau utilisateur. Nous avons recontré des problèmes avec les adressage, que nous avons pu réger en nous aidant du code de correction fourni. De plus, il était compliqué de créer un Makefile pour compiler notre programme. Nous avons donc utilisé le Makefile fourni dans le dossier de correction. Nous pensons que ça serait une bonne idée d'avoir un petit explicatif sur les differents Makefile kernel et userspace.\
 
-
+## Exercice 2: Pilotes orientés caractère
+Cette exercice nous demande de créer un (pilote orienté caractère)[https://mse-csel.github.io/website/lecture/programmation-noyau/pilotes/char] nous permetant de stocker et récupérer une valeur à l'aide des commandes `read` et `write`.\ 
+Ce pilote est un module et donc est dévellopé au niveau du noyau. Il permet de créer un fichier dans le dossier `/dev` qui va nous permettre de communiquer avec le pilote.\
 
 
 
