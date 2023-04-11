@@ -344,11 +344,19 @@ De plus lorsque nous voulons acceder à une donnée, nous devons faire `regs + (
 Nous avons appris à utiliser mmap au niveau utilisateur. Nous avons recontré des problèmes avec les adressage, que nous avons pu réger en nous aidant du code de correction fourni. De plus, il était compliqué de créer un Makefile pour compiler notre programme. Nous avons donc utilisé le Makefile fourni dans le dossier de correction. Nous pensons que ça serait une bonne idée d'avoir un petit explicatif sur les differents Makefile kernel et userspace.\
 
 ## Exercice 2: Pilotes orientés caractère
-Cette exercice nous demande de créer un [pilote orienté caractère](https://mse-csel.github.io/website/lecture/programmation-noyau/pilotes/char) nous permetant de stocker et récupérer une valeur à l'aide des commandes `read` et `write`.\ 
-Ce pilote est un module et donc est dévellopé au niveau du noyau. Il permet de créer un fichier dans le dossier `/dev` qui va nous permettre de communiquer avec le pilote.\
+Cette exercice nous demande de créer un (pilote orienté caractère)[https://mse-csel.github.io/website/lecture/programmation-noyau/pilotes/char] nous permetant de stocker et récupérer une valeur à l'aide des commandes `read` et `write`.\ 
+Ce pilote est un module et donc est dévellopé au niveau du noyau. Il va nous permettre d'intéragir à travers le fichier `/dev/[char_driver]`.\
+Le pilote doit comporter les fonctions `open`, `release`, `read` et `write`. Il doit aussi être enregistré avec la fonction `alloc_chrdev_region` et déregistré avec `unregister_chrdev_region` et associé à un fichier avec `cdev_init` et `cdev_add`.\
+Une fois le pilote chargé, nous devons créer le fichier `/dev/[char_driver]` avec la commande `mknod /dev/[char_driver] c [MAJOR] [MINOR]`. L'affichage de ces valeur est pratique lors de l'initalisation avec `MAJOR(dev_t)` et `MINOR(dev_t)`. Pour retirer le fichier, une fois que le module est retiré, nous pouvons utiliser la commande `rm /dev/[char_driver]`.\
 
+### Apris, remarque, feedback
+Nous nous sommes rafraichis la mémoire sur la création de pilote de type caractère et avons apris à utiliser la commande `mknod` pour rendre accecible par à travers le fichier notre pilote.\
 
-
+## Exercice 3: Pilotes orientés caractère
+Dans cette exercice, nous devons reprendre le pilote de l'exercice 2 et le modifier pour que nous puissions spécifier le nombre d'instances que nous voulons créer.\
+Les fonctions `static inline unsigned iminor(const struct inode *inode)` et `static inline unsigned imajor(const struct inode *inode)` permettent de récupérer le numéro major et minor du fichier qui est utilisé. De cette manière, nous pouvons savoir vers quel buffer adresser l'opération. Nous pouvons aussi retrouver cette information à partir du descripteur de fichier avec la fonction `iminor(file_inode(f))` ou `iminor(f->f_inode);` et `imajor(file_inode(f))` ou `imajor(f->f_inode)`.\
+Ne pas oublier d'ajouter le paramettre dans `vi /etc/modprobe.conf ` : `options mod_ex_pilotes_3 instances=5`
+Puis il faut refaire la commande `mknod /dev/[char_driver] c [MAJOR] [MINOR]` pour créer les fichiers.\
 
 
 
