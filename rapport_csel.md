@@ -1,6 +1,19 @@
-### Tanguy Dietrich & Kirill Goundiaev
-### Printemps 2023
-# Rapport CSEL
+---
+title       : Rapport CSEL
+author      : "Kirill Goundiaev & Tanguy Dietrich"
+date        : \today
+papersize   : A4
+geometry    : "left=2.5cm,right=2cm,top=1.5cm,bottom=2cm"
+colorlinks  : urlcolor
+fontsize    : 11pt
+lang        : fr-CH
+---
+
+<!--
+## TODO
+ NO Comment
+--> 
+
 # Environnement Linux embarqué et programmation noyau Linux
 
 # Préambule
@@ -306,7 +319,7 @@ Afin de partager l'information entre deux threads, nous avons deux solutions :
 
 Nous avons opter pour les varables partagées, même si elles sont plus complexes à mettre en place, nous trouvons que c'est une solution plus propre.\
 Pour partager les données entre les threads, nous avons utilisé une structure de données qui nous permet de stocker les données et de les passer en paramettre à nos fonctions.\
-Nos deux fonctions foctionnent correctement et donne les résultats attendu. A noter qu'il ne faut pas oublier le '\n' à la fin de la chaine de caractère pour que le message soit afficher imédiatement, sinon celà pour porter confusion lors des observations.
+Nos deux fonctions foctionnent correctement et donne les résultats attendu. A noter qu'il ne faut pas oublier le ```\n``` à la fin de la chaine de caractère pour que le message soit afficher imédiatement, sinon celà pour porter confusion lors des observations.
 
 ### Apris, remarque, feedback
 Nous avons appris à utiliser les variables atomiques, ainsi que les queues d'attente. Il était particulierement intéressant de metre en place une execution concurrente avec une communication inter thread. C'est une notion que nous pensons peut être souvant utile. Nous avons également mis en place un affichage coloré que facilite la lecture des messages.
