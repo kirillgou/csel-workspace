@@ -42,7 +42,7 @@ static int  instances = 1;
 module_param(instances, int, 0);
 
 //variable globale
-#define MAX_SIZE 10
+#define MAX_SIZE 1000
 // change to dynamic allocation
 // char module_data[MAX_SIZE];
 static char **module_data_tab;
@@ -101,6 +101,7 @@ static ssize_t my_read(struct file *f, char __user *buf, size_t count, loff_t *o
 
 // pour l'opération write
 static ssize_t my_write(struct file *f, const char __user *buf, size_t count, loff_t *off){
+    pr_info("Pilotes Ex3: __%s__\n", buf);
     unsigned minor = iminor(f->f_inode);
     unsigned major = imajor(f->f_inode);
     size_t max_write = MAX_SIZE - *off;
@@ -110,6 +111,7 @@ static ssize_t my_write(struct file *f, const char __user *buf, size_t count, lo
 
     pr_info("Pilotes Ex3: my_write called\n");
     if(count > max_write || count < 0){
+        pr_err("Pilotes Ex3: my_write failed max=%d, count=%d\n", max_write, count);
         return -EFAULT;
     }
     // copie au maximum count octets depuis le buffer utilisateur buf
@@ -121,6 +123,7 @@ static ssize_t my_write(struct file *f, const char __user *buf, size_t count, lo
         pr_info("Pilotes Ex3: copy_from_user failed\n");
         return -EFAULT;
     }
+    pr_info("Pilotes Ex3: __%s__\n", write_to);
     *off += count;
     // mise à jour de la taille des données sauvegardées
     // data_saved = *off;

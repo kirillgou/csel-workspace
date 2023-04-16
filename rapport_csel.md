@@ -370,14 +370,19 @@ Une fois le pilote chargé, nous devons créer le fichier `/dev/[char_driver]` a
 ### Apris, remarque, feedback
 Nous nous sommes rafraichis la mémoire sur la création de pilote de type caractère et avons apris à utiliser la commande `mknod` pour rendre accecible par à travers le fichier notre pilote.\
 
-## Exercice 3: Pilotes orientés caractère
+## Exercice 3: Pilotes orientés caractère à plusieures instances 
 Dans cette exercice, nous devons reprendre le pilote de l'exercice 2 et le modifier pour que nous puissions spécifier le nombre d'instances que nous voulons créer.\
 Les fonctions `static inline unsigned iminor(const struct inode *inode)` et `static inline unsigned imajor(const struct inode *inode)` permettent de récupérer le numéro major et minor du fichier qui est utilisé. De cette manière, nous pouvons savoir vers quel buffer adresser l'opération. Nous pouvons aussi retrouver cette information à partir du descripteur de fichier avec la fonction `iminor(file_inode(f))` ou `iminor(f->f_inode);` et `imajor(file_inode(f))` ou `imajor(f->f_inode)`.\
-Ne pas oublier d'ajouter le paramettre dans `vi /etc/modprobe.conf ` : `options mod_ex_pilotes_3 instances=5`
-Puis il faut refaire la commande `mknod /dev/[char_driver] c [MAJOR] [MINOR]` pour créer les fichiers.\
+Ne pas oublier d'ajouter le paramettre avec `vi /etc/modprobe.conf ` : `options mod_ex_pilotes_3 instances=5`
+Puis il faut refaire la commande `mknod /dev/[char_driver] c [MAJOR] [MINOR]` pour créer les fichiers corespondant à chaque instance minor.\
 
+### Apris, remarque, feedback
+Nous avons réutiliser les notions déjà appris pour développer un module plus complexe. Nous avons apris à utiliser les fonctions `iminor` et `imajor` pour récupérer le numéro major et minor du fichier qui est utilisé.\
 
-
+## Exercice 4: Pilotes orientés caractèr accés depuis l'espace utilisateur
+Cette exercice nous demande de créer une application utilisateur qui va utiliser le pilote de l'exercice 3.\
+Nous avons instancié le module de l'exercice 3 avec 5 instances. Nous avons donc 5 fichiers `/dev/my_mod_ex3_0` à `/dev/my_mod_ex3_4`.\
+Attention, pour lire ce qui a été écrit dans le buffer, il faut fermer et rouvrir le fichier après l'écriture.\
 
 
 
