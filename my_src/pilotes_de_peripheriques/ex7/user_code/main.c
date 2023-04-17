@@ -24,14 +24,14 @@ int main(){
         printf("Could not open /dev/mem: error=%i \n", fd);
         return -1;
     }
-    struct pollfd *fds;
-    fds = malloc(sizeof(struct pollfd));
-    fds->fd = fd;
-    fds->events = POLLIN;
-    fds->revents = 0;
+    struct pollfd fds;
+    // fds = malloc(sizeof(struct pollfd));
+    fds.fd = fd;
+    fds.events = POLLIN;
+    fds.revents = 0;
 
     printf("polling...\n");
-    poll(fds, 1, -1);
+    poll(&fds, 1, -1);
     printf("polling done\n");
     
     char* str_rd = malloc(3 * 2);
