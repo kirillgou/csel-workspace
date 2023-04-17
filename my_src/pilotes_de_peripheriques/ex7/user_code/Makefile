@@ -34,7 +34,7 @@ $(OBJDIR)/:
 	mkdir -p $(OBJDIR)
 
 clean:
-	rm -Rf $(OBJDIR) $(EXEC) $(EXEC)_s *~
+	rm -Rf .obj $(OBJDIR) $(EXEC) $(EXEC)_s *~
 
 clean_all: clean
 	rm -Rf .obj $(EXE) $(EXE)_s $(EXE)_a $(EXE)_a_s $(EXE)_h $(EXE)_h_s
