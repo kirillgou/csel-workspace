@@ -300,9 +300,9 @@ Après initialisation, si nous appuyons sur un des boutons, le terminal nous aff
 Le numéro du GPIO à utiliser peut être retrouvé dans [le schéma](https://mse-csel.github.io/website/documentation/assets/Schematic_NanoHat_OLED_v1.4_1804.pdf).\
 La commande `cat /proc/interrupts` nous permet de voir les interruptions en cours:\
 ```sh
-    88:         31          0          0          0  sunxi_pio_edge   0 Edge      irq_k1
-    90:         42          0          0          0  sunxi_pio_edge   2 Edge      irq_k2
-    91:         36          0          0          0  sunxi_pio_edge   3 Edge      irq_k3
+    88:    31   0   0   0  sunxi_pio_edge   0 Edge   irq_k1
+    90:    42   0   0   0  sunxi_pio_edge   2 Edge   irq_k2
+    91:    36   0   0   0  sunxi_pio_edge   3 Edge   irq_k3
 ```
 Attention à garder l'interruption en cours.\
 
