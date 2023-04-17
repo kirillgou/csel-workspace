@@ -29,3 +29,13 @@ src/03_drivers/sample01/main2
 src/03_drivers/sample01/main3
 
 boot-scripts/boot.cifs
+**/app
+**.cmd
+**.ko
+**.mod
+**.mod.c
+**.mod.o
+**.o
+**.symvers
+**.order
+

@@ -367,7 +367,20 @@ Nous avons instancié le module de l'exercice 3 avec 5 instances. Nous avons don
 Attention, pour lire ce qui a été écrit dans le buffer, il faut fermer et rouvrir le fichier après l'écriture.\
 
 
+## Exercice 5: sysfs
+Cette exercice nous demande de créer un pilote qui va créer un fichier dans le dossier `/sys/class/...`. Ceci nous permettra le lire et d'écrire dans ce fichier.\
+Afin de créer un fichier dans le dossier `/sys/class/...`, nous devons utiliser la fonction `class_create`.\
+Nous devons ensuite créer un fichier dans le dossier `/sys/class/...` avec la fonction `device_create`.\
+Pour créer un fichier dans le dossier `/sys/class/...`, nous devons utiliser la fonction `device_create_file`.\
+Avant de le créer, nous devons declarer l'attirbut de device avec `DEVICE_ATTR` au quel nous devons passer le nom du fichier, les droits d'acces, les fonctions de lecture et d'écriture.
+La lecture et l'écriture se fait à travers un buffer.\
 
+### Apris, remarque, feedback
+Nous avons apris à créer une classe du driver, ainsi que des fichiers représentant les instances du driver dans le dossier `/sys/class/...`.\
+
+## Exercice 5.1: sysfs opérations sur les fichiers
+Cette exercice nous demande de modifier le pilote de l'exercice 5 pour qu'il puisse faire des opérations sur les fichiers.\
+De ce fait nous devons regrouper les exercices précédents dans un seul pilote.\
 
 
 
