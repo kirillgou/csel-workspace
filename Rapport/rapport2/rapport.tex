@@ -1,0 +1,78 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% University/School Laboratory Report
+% LaTeX Template
+% Version 4.0 (March 21, 2022)
+%
+% This template originates from:
+% https://www.LaTeXTemplates.com
+%
+% Authors:
+% Vel (vel@latextemplates.com)
+% Linux and Unix Users Group at Virginia Tech Wiki
+%
+% License:
+% CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[
+	a4paper, % Paper size, specify a4paper (A4) or letterpaper (US letter)
+	10pt, % Default font size, specify 10pt, 11pt or 12pt
+]{CSUniSchoolLabReport}
+
+
+\addbibresource{sample.bib} % Bibliography file (located in the same folder as the template)
+
+%----------------------------------------------------------------------------------------
+%	REPORT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{MA-CSEL \\ Conception systeme Embarqué Linux } % Report title
+
+\author{Kirill \textsc{Goundiaev} \& Tanguy \textsc{Dietrich}} % Author name(s), add additional authors like: '\& James \textsc{Smith}'
+
+\fancyhead[RE,LO]{Kirill Goundiaev \& Tanguy Dietrich}
+\fancyhead[LE,RO]{MA-CSEL}
+\fancyhead[CE,CO]{\today}
+% \fancyfoot[CE,CO]{} % this dicard page number dont touch
+% \fancyfoot[LE,RO]{9 10 11 12}
+\date{\today} % Date of the report
+
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\maketitle % Insert the title, author and date using the information specified above
+
+%  to make a guard page
+\newpage
+
+% generate the summary table
+\tableofcontents
+\newpage
+
+
+\section{Objectif}
+
+\section{Programmation Systeme}
+
+\subsection{Systeme de fichier}\label{filesystem}
+
+\subsection{Multiprocessing et Ordonnanceur}\label{multiprocess}
+
+\section{Conclusion}
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\printbibliography % Output the bibliography
+
+%----------------------------------------------------------------------------------------
+
+\end{document}
