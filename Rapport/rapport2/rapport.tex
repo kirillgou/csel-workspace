@@ -36,12 +36,29 @@
 \author{Kirill \textsc{Goundiaev} \& Tanguy \textsc{Dietrich}} % Author name(s), add additional authors like: '\& James \textsc{Smith}'
 
 \fancyhead[RE,LO]{Kirill Goundiaev \& Tanguy Dietrich}
-\fancyhead[LE,RO]{MA-CSEL}
 \fancyhead[CE,CO]{\today}
-% \fancyfoot[CE,CO]{} % this dicard page number dont touch
-% \fancyfoot[LE,RO]{9 10 11 12}
+\fancyhead[LE,RO]{MA-CSEL}
+
+\fancyfoot[RE,LO]{MSE}
+\fancyfoot[CE,CO]{\thepage} % this dicard page number dont touch
+\fancyfoot[LE,RO]{HES-SO}
 \date{\today} % Date of the report
 
+
+% add image on the left top corner
+% Definition of \maketitle
+\makeatletter         
+\def\@maketitle{
+\raggedright
+% \includegraphics[width = 60mm]{Figures/MSE.png}\\[8ex]
+\includegraphics[width = 40mm]{Figures/HESSO.png}\\[8ex]
+\begin{center}{}
+{\Huge \@title }\\[4ex] 
+{\Large  \@author}\\[4ex] 
+\@date\\[8ex]
+% \includegraphics[width = 40mm]{Figures/HESSO.png}
+\end{center}}
+\makeatother
 
 %----------------------------------------------------------------------------------------
 
@@ -58,6 +75,8 @@
 
 
 \section{Objectif}
+
+This is my link: \footnote{\href{http://www.latex-tutorial.com}{http://www.latex-tutorial.com}}.
 
 \section{Programmation Systeme}
 

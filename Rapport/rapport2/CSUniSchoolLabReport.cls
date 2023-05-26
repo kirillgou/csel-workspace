@@ -53,7 +53,7 @@
 
 \usepackage[
 	top=2.5cm, % Top margin
-	bottom=2.5cm, % Bottom margin
+	bottom=2.5cm, % Bottom marginf
 	left=2.5 cm, % Left margin
 	right=2.5 cm, % Right margin
 	%showframe % Uncomment to show frames around the margins for debugging purposes
@@ -113,7 +113,15 @@
 \usepackage{subfig}
 
 
-
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,      
+    urlcolor=blue,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
 
 \usepackage{fancyhdr}
 \pagestyle{fancy}
