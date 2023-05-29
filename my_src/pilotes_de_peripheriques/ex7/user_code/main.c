@@ -25,14 +25,13 @@ int main(){
         return -1;
     }
     struct pollfd fds;
-    // fds = malloc(sizeof(struct pollfd));
     fds.fd = fd;
     fds.events = POLLIN;
     fds.revents = 0;
 
     printf("polling...\n");
     poll(&fds, 1, -1);
-    printf("polling done\n");
+    printf("polling done, can read\n");
     
     char* str_rd = malloc(3 * 2);
     read(fd, str_rd, 3 * 2);
