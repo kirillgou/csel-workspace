@@ -107,6 +107,14 @@
     language=C
 }
 
+\lstset{basicstyle=\ttfamily,
+  showstringspaces=false,
+  numbers=left,
+  numbersep=5pt,
+  commentstyle=\color{red},
+  keywordstyle=\color{blue}
+}
+
 \usepackage{svg}
 
 \usepackage{graphicx}
@@ -125,4 +133,7 @@
 
 \usepackage{fancyhdr}
 \pagestyle{fancy}
+
+\usepackage{listings}
+\usepackage{parcolumns}
 
