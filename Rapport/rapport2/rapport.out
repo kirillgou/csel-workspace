@@ -2,4 +2,7 @@
 \BOOKMARK [1][-]{section.2}{Programmation Systeme}{}% 2
 \BOOKMARK [2][-]{subsection.2.1}{Systeme de fichier}{section.2}% 3
 \BOOKMARK [2][-]{subsection.2.2}{Multiprocessing et Ordonnanceur}{section.2}% 4
-\BOOKMARK [1][-]{section.3}{Conclusion}{}% 5
+\BOOKMARK [3][-]{subsubsection.2.2.1}{Exercice 1 Processus et signaux}{subsection.2.2}% 5
+\BOOKMARK [3][-]{subsubsection.2.2.2}{Exercice 2 CGroups Limitation memoire}{subsection.2.2}% 6
+\BOOKMARK [3][-]{subsubsection.2.2.3}{Exercice 3 CGroups Controle du CPU}{subsection.2.2}% 7
+\BOOKMARK [1][-]{section.3}{Conclusion}{}% 8

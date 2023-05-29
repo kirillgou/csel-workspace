@@ -24,32 +24,20 @@ Remplir le bloc avec des 0
 #define NUM_BLOCKS 50
 #define MEGABYTE 1024 * 1024
 #define BLOCK_SIZE (2 * MEGABYTE)
-#define WAIT_TIME_US 1000000
 
 int main(void)
 {
     int i;
     char *ptr[NUM_BLOCKS];
-    // show the pid of the process
-    printf("PID: %d\n", getpid());
-    printf("Press any key to allocate memory.\n");
-    getchar();
     printf("Allocating memory...\n");
     for (i = 0; i < NUM_BLOCKS; i++)
     {
+        getchar();
         printf("Allocating block %d\n", i);
         ptr[i] = malloc(BLOCK_SIZE * sizeof(char));
         if (ptr[i] == NULL){exit(EXIT_FAILURE);}
-        usleep(100000);
-        // set the memory to 0 using memset
         memset(ptr[i], 0, BLOCK_SIZE);
     }
-    printf("Press any key to free memory.\n");
-    getchar();
-    for (i = 0; i < NUM_BLOCKS; i++)
-    {
-        free(ptr[i]);
-    }
-    printf("Memory freed.\n");
+    for (i = 0; i < NUM_BLOCKS; i++){free(ptr[i]);}
     return 0;
 }

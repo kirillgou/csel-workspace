@@ -20,6 +20,7 @@ Seul un message d’information sera affiché sur la console. Chacun des process
 #include <sched.h>
 #include <string.h>
 
+int setAffinity(int core);
 
 #define PARENTSOCKET 0
 #define CHILDSOCKET 1
@@ -48,7 +49,8 @@ void child(int socket) {
             exitProcess = true;
         }
         // juste to give the time to the parent to read the message
-        usleep(1000000); // because the parent could read two message at once and not see the exit message
+        // because the parent could read two message at once and not see the exit message
+        usleep(1000000); 
         cpt = (cpt + 1) % NUM_MESSAGE;
     }
     printf("Child exit\r\n");
@@ -72,6 +74,20 @@ void parent(int socket) {
 }
 
 
+int setAffinity(int core) {
+    // set thread affinity
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    // set this process to run on core 0
+    CPU_SET(core, &cpuset);
+    // here 0 mean use the calling process
+    if(sched_setaffinity(0, sizeof(cpuset), &cpuset) == -1) {
+
+        return -1;
+    }
+    return 0;
+}
+
 int main(void)
 {
     int fd[2];
@@ -94,36 +110,18 @@ int main(void)
     sigaction(SIGTERM, &act, NULL);
 
     pid = fork();
-    if (pid == 0) // child
-    { 
+    if (pid == 0) { // child 
         close(fd[PARENTSOCKET]); 
         // set thread affinity
-        cpu_set_t cpuset;
-        CPU_ZERO(&cpuset);
-        // set this process to run on core 1
-        CPU_SET(1, &cpuset);
-        // here 0 mean use the calling process
-        if(sched_setaffinity(0, sizeof(cpuset), &cpuset) == -1) {
-            perror("sched_setaffinity");
-            // exit(1);
-        }
+        if(setAffinity(1) == -1) { perror("sched_setaffinity");}
         child(fd[CHILDSOCKET]);
         close(fd[CHILDSOCKET]);
         exit(0);
     }
-    else // parent
-    { 
+    else { // parent 
         close(fd[CHILDSOCKET]);
         // set thread affinity
-        cpu_set_t cpuset;
-        CPU_ZERO(&cpuset);
-        // set this process to run on core 0
-        CPU_SET(0, &cpuset);
-        // here 0 mean use the calling process
-        if(sched_setaffinity(0, sizeof(cpuset), &cpuset) == -1) {
-            perror("sched_setaffinity");
-            // exit(1);
-        }
+        if(setAffinity(0) == -1) { perror("sched_setaffinity");}
         parent(fd[PARENTSOCKET]);
         close(fd[PARENTSOCKET]);
     }
