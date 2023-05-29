@@ -35,6 +35,9 @@
 #include <sys/timerfd.h> // timerfd_create, timerfd_settime
 #include <syslog.h> // syslog see https://www.gnu.org/software/libc/manual/html_node/Syslog-Example.html
 
+
+// note to see syslog: tail /var/log/messages
+// less /var/log/messages | tail
 /*
  * status led - gpioa.10 --> gpio10
  * power led  - gpiol.10 --> gpio362
@@ -168,6 +171,7 @@ int open_timer(){ // see https://man7.org/linux/man-pages/man2/timerfd_create.2.
         printf("error timerfd_settime: %s\n", strerror(errno));
         return 1;
     }
+    syslog(LOG_INFO, "frequence: %.5fHz", S_IN_NSEC / (double)DEFAULT_PERIOD);
     return fd;
 }
 
@@ -229,9 +233,12 @@ void button_action(enum my_event ev, int wait_for_first_event){
         printf("error timerfd_settime: %s\n", strerror(errno));
         return;
     }
+    syslog(LOG_INFO, "frequence: %.5fHz", S_IN_NSEC / (double)period);
 }
 
 int main(){
+    // see https://linux.die.net/man/3/openlog
+    openlog("LED_Ctrl", LOG_PID | LOG_CONS | LOG_NDELAY, LOG_USER);
 
     ctx[FD_LED].ev = FD_LED;
     ctx[FD_LED].fd = open_led();
