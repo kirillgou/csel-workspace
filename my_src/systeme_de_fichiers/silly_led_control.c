@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <sys/epoll.h> // epoll_create1, epoll_ctl, epoll_wait
 #include <sys/timerfd.h> // timerfd_create, timerfd_settime
+#include <syslog.h> // syslog see https://www.gnu.org/software/libc/manual/html_node/Syslog-Example.html
 
 /*
  * status led - gpioa.10 --> gpio10
@@ -54,6 +55,9 @@
 #define BTN_2        "2"
 #define GPIO_BTN_3   "/sys/class/gpio/gpio3"
 #define BTN_3        "3"
+
+#define S_IN_NSEC 1000000000
+#define DEFAULT_PERIOD 500000000 // 500ms = 500'000'000ns
 
 enum my_event {
     EV_BTN_1 = 0,
@@ -94,7 +98,7 @@ static int open_led(){
 }
 
 int open_button(const char *gpio_path, const char *gpio_num){
-    printf("open button %s %s\n", gpio_num, gpio_path);
+    // printf("open button %s %s\n", gpio_num, gpio_path);
     // unexport pin out of sysfs (reinitialization)
     int f = open(GPIO_UNEXPORT, O_WRONLY);
     write(f, gpio_num, strlen(gpio_num));
@@ -136,11 +140,10 @@ int open_button(const char *gpio_path, const char *gpio_num){
 
 int read_btn(int fd_btn){
     char buf[1];
-    if(pread(fd_btn, buf, sizeof(buf), 0) == .1){
+    if(pread(fd_btn, buf, sizeof(buf), 0) == -1){
         printf("error: %s\n", strerror(errno));
         return 0;
     }
-    // printf("read: %s\n", buf);
     return atoi(buf)==0 ? 0 : 1;
 }
 
@@ -152,10 +155,15 @@ int open_timer(){ // see https://man7.org/linux/man-pages/man2/timerfd_create.2.
     }
     // default 2Hz => 500ms
     struct itimerspec new_value;
+    // interval for periodic timer
     new_value.it_interval.tv_sec = 0;
-    new_value.it_interval.tv_nsec = 500000000; // 500ms = 500'000'000ns 
-    new_value.it_value.tv_sec = 0;
-    new_value.it_value.tv_nsec = 500000000; // 500ms = 500'000'000ns
+    new_value.it_interval.tv_nsec = DEFAULT_PERIOD; // 500ms = 500'000'000ns 
+
+    // initial expiration (timer before first expiration)
+    new_value.it_value.tv_sec = 10;
+    // new_value.it_value.tv_sec = 1;
+    new_value.it_value.tv_nsec = 0; // 500ms = 500'000'000ns
+    // new_value.it_value.tv_nsec = DEFAULT_PERIOD; // 500ms = 500'000'000ns
     if (timerfd_settime(fd, 0, &new_value, NULL) == -1) {
         printf("error timerfd_settime: %s\n", strerror(errno));
         return 1;
@@ -163,25 +171,80 @@ int open_timer(){ // see https://man7.org/linux/man-pages/man2/timerfd_create.2.
     return fd;
 }
 
+void change_led(){
+    static int cpt = DEFAULT_PERIOD;
+    cpt = (cpt + 1) % 2;
+        pwrite(ctx[FD_LED].fd, cpt ? "1" : "0", sizeof("0"), 0);
+}
 
-int main(int argc, char* argv[]){
-    printf("start silly led control\n");
-    long duty   = 2;     // %
-    long period = 1000;  // ms
-    if (argc >= 2) period = atoi(argv[1]);
-    period *= 1000000;  // in ns
+void button_action(enum my_event ev, int wait_for_first_event){
+    static uint64_t period = 0;
+    struct itimerspec current_value;
+    struct itimerspec new_value;
+    uint64_t last_period;
 
-    // compute duty period...
-    long p1 = period / 100 * duty;
-    long p2 = period - p1;
+    switch (ev){
+    case EV_BTN_1: // increase frequence
+        period /= 2;
+        if(period == 0){
+            period = 1;
+            // printf("error: period == 0\n");
+        }
+        break;
+    case EV_BTN_2: // resert frequence
+        period = DEFAULT_PERIOD;
+        break;
+    case EV_BTN_3: // decrease frequence
+        last_period = period;
+        period *= 2;
+        if(period < last_period){
+            period = last_period;
+            // printf("error: period overflow\n");
+        }
+        break;
+    default:
+        printf("error: unused event\n");
+        break;
+    }
+    
 
-    int led = open_led();
-    pwrite(led, "1", sizeof("1"), 0);
+    new_value.it_interval.tv_sec = period / S_IN_NSEC;
+    new_value.it_interval.tv_nsec = period % S_IN_NSEC;
 
-    int fd_btn[3];
-    fd_btn[0] = open_button(GPIO_BTN_1, BTN_1);
-    fd_btn[1] = open_button(GPIO_BTN_2, BTN_2);
-    fd_btn[2] = open_button(GPIO_BTN_3, BTN_3);
+    if(wait_for_first_event){
+        // time until next expiration
+        if(timerfd_gettime(ctx[EV_TIMER].fd, &current_value) == -1){
+            printf("error timerfd_gettime: %s\n", strerror(errno));
+            return;
+        }
+        new_value.it_value.tv_sec = current_value.it_value.tv_sec;
+        new_value.it_value.tv_nsec = current_value.it_value.tv_nsec+1;// +1 to force to start timer, can be 0
+        // printf("old sec: %ld\n", current_value.it_value.tv_sec);
+        // printf("old nsec: %ld\n", current_value.it_value.tv_nsec);
+    }else{// direct reset timer
+        new_value.it_value.tv_sec = 0;
+        new_value.it_value.tv_nsec = 1;// +1 to force to start timer
+    }
+    if (timerfd_settime(ctx[EV_TIMER].fd, 0, &new_value, NULL) == -1) {
+        printf("error timerfd_settime: %s\n", strerror(errno));
+        return;
+    }
+}
+
+int main(){
+
+    ctx[FD_LED].ev = FD_LED;
+    ctx[FD_LED].fd = open_led();
+
+    ctx[EV_BTN_1].ev = EV_BTN_1;
+    ctx[EV_BTN_2].ev = EV_BTN_2;
+    ctx[EV_BTN_3].ev = EV_BTN_3;
+    ctx[EV_BTN_1].fd = open_button(GPIO_BTN_1, BTN_1);
+    ctx[EV_BTN_2].fd = open_button(GPIO_BTN_2, BTN_2);
+    ctx[EV_BTN_3].fd = open_button(GPIO_BTN_3, BTN_3);
+
+    ctx[EV_TIMER].ev = EV_TIMER;
+    ctx[EV_TIMER].fd = open_timer();
 
     // creation contexte epoll
     int epfd = epoll_create1(0);// parametre size isn't used anymore by Linux
@@ -198,47 +261,54 @@ int main(int argc, char* argv[]){
     // EPOLLOUT un fchier virtuel est disponible en écriture
     // EPOLLPRI des données prioritaires out-of-band sont diponibles
     for(uint32_t i = 0; i < 3; i++){
-        ctx[i].fd = fd_btn[i];
-        ctx[i].ev = i;
         ctx[i].first_done = 0;
         struct epoll_event event = {
             // .events = EPOLLIN | EPOLLET, 
             .events = EPOLLET, // mode edge triggered
-            // .data.fd = fd_btn[i]
             .data.ptr = &ctx[i]
         };
-        if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd_btn[i], &event) == -1) {
+        if (epoll_ctl(epfd, EPOLL_CTL_ADD, ctx[i].fd, &event) == -1) {
             printf("error epoll_ctl: %s\n", strerror(errno));
             return 1;
         }
     }
     
-    int cpt = 0;
+    // add contexte timer to epoll
+    struct epoll_event event_timer = {
+        .events = EPOLLIN, // read available
+        .data.ptr = &ctx[EV_TIMER]
+    };
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, ctx[EV_TIMER].fd, &event_timer) == -1) {
+        printf("error epoll_ctl_timer: %s\n", strerror(errno));
+        return 1;
+    }
+
+    uint64_t time;
     while (1){
         // wait for event
-        struct epoll_event event_arrived[3];
-        int nr = epoll_wait(epfd, event_arrived, 3, -1);
+        struct epoll_event event_arrived[5];
+        int nr = epoll_wait(epfd, event_arrived, 5, -1);
         if (nr == -1) {
             printf("error epoll_wait: %s\n", strerror(errno));
             return 1;
         }
-        printf("event: %d\n", nr);
         for(int i = 0; i < nr; i++){
             my_context *ctx = event_arrived[i].data.ptr;
 
             switch (ctx->ev){
             case EV_BTN_1: // increase frequence
-                printf("increase frequence\n");
-                break;
             case EV_BTN_2: // resert frequence
-                printf("resert frequence\n");
-                break;
             case EV_BTN_3: // decrease frequence
-                printf("decrease frequence\n");
-                // printf("event=%d on fd=%d\n", ctx->ev, ctx->fd);
-                // // read button
-                // int btn = read_btn(ctx->fd);
-                // printf("value: %d\n", btn);
+                if(ctx->first_done == 0){
+                    ctx->first_done = 1;
+                    break;
+                }
+                button_action(ctx->ev, 0);
+                break;
+            
+            case EV_TIMER:
+                read(ctx->fd, &time, sizeof(time));
+                change_led();
                 break;
             
             default:
@@ -246,42 +316,6 @@ int main(int argc, char* argv[]){
                 break;
             }
         }
-
-        if (cpt == 10){
-            break;
-        }
-        
-        cpt++;
     }
-    return 0;
-
-
-
-
-    struct timespec t1;
-    clock_gettime(CLOCK_MONOTONIC, &t1);
-
-    int k = 0;
-    while (1) {
-        struct timespec t2;
-        clock_gettime(CLOCK_MONOTONIC, &t2);
-
-        
-
-        long delta =
-            (t2.tv_sec - t1.tv_sec) * 1000000000 + (t2.tv_nsec - t1.tv_nsec);
-
-        int toggle = ((k == 0) && (delta >= p1)) | ((k == 1) && (delta >= p2));
-        // usleep(1000000);
-        if (toggle) {
-            t1 = t2;
-            k  = (k + 1) % 2;
-            if (k == 0)
-                pwrite(led, "1", sizeof("1"), 0);
-            else
-                pwrite(led, "0", sizeof("0"), 0);
-        }
-    }
-
     return 0;
 }
