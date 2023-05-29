@@ -109,6 +109,8 @@
 
 \lstset{basicstyle=\ttfamily,
   showstringspaces=false,
+  numbers=left,
+  numbersep=5pt,
   commentstyle=\color{red},
   keywordstyle=\color{blue}
 }

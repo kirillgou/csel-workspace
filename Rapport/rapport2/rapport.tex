@@ -101,7 +101,7 @@ Afin d'ignorer les signaux, nous avons utiliser la structure sigaction qui perme
 Chaque handler de signal a été assigné a SIG\_IGN, ce qui permet d'ignorer le signal.
 voici un extrait du code :
 
-\begin{lstlisting}[style=CStyle]
+\begin{lstlisting}[style=CStyle, firstnumber=1]
 	struct sigaction sa;
 	sa.sa_handler = SIG_IGN;
 	sigemptyset(&sa.sa_mask);
@@ -113,7 +113,7 @@ voici un extrait du code :
 	sigaction(SIGTERM, &sa, NULL);
 \end{lstlisting}
 La création du socketpair se fait simplement avec ce bout de code :
-\begin{lstlisting}[style=CStyle]
+\begin{lstlisting}[style=CStyle, firstnumber=1]
 	int fd[2];
     if(socketpair(PF_LOCAL, SOCK_STREAM, 0, fd) < 0) {
         perror("socketpair");
@@ -124,7 +124,7 @@ Le paramentre PF\_LOCAL permet de créer un socket local, SOCK\_STREAM permet de
 
 Afin de crée les deux process, nous avons utiliser la fonction fork() qui permet de crée un processus enfant identique au processus parent.
 Voici un extrait du programme apres la fonction fork() :
-\begin{lstlisting}[style=CStyle]
+\begin{lstlisting}[style=CStyle, firstnumber=1]
 	pid = fork();
     if (pid == 0) { // child 
         close(fd[PARENTSOCKET]); 
@@ -150,7 +150,7 @@ Ensuite il faut assigner l'affinité des processus, pour cela nous avons utilise
 Pour terminer il ne reste qu'as lancer la fonction correspondante au processus (enfant, ou parent).
 Et ne pas oublier d'effectuer un wait pour attendre que le processus enfant se termine. Pour eviter les zombies.
 La fonction setAffinity que nous avons créer utilise sched\_setaffinity, voici le code : \\
-\begin{lstlisting}[style=CStyle]
+\begin{lstlisting}[style=CStyle, firstnumber=1]
 	int setAffinity(int core) {
 		// set thread affinity
 		cpu_set_t cpuset;
@@ -168,7 +168,7 @@ La fonction setAffinity que nous avons créer utilise sched\_setaffinity, voici 
 La communication entre les deux process est assez simple etant donnée, que nous avons simplement 2 descripteur de fichier, du point de vue de notre programme, c'est comme si nous allions écrire/lire dans un fichier.
 Il ne reste plus qu'as lire le descripteur de fichier dans le parent, et d'écrire avec l'enfant.\\
 \noindent\begin{minipage}{.50\textwidth}
-\begin{lstlisting}[style=CStyle, caption=Processus Enfant]{Name}
+\begin{lstlisting}[style=CStyle, caption=Processus Enfant, firstnumber=1]{Name}
 void child(int socket) {
 	// get the child socket
 	int cpt = 0;
@@ -190,7 +190,7 @@ void child(int socket) {
 \end{lstlisting}
 \end{minipage}\hfill
 \begin{minipage}{.45\textwidth}
-\begin{lstlisting}[style=CStyle, caption=Processus Parent]{Name}
+\begin{lstlisting}[style=CStyle, caption=Processus Parent, firstnumber=1]{Name}
 void parent(int socket) {
 	// get the parent socket
 	char buffer[512];
@@ -228,7 +228,7 @@ Il serait mieux de regarder le nombre de bytes recu, et de parser le message rec
 Dans cet exercice, l'objectif etait de montrer que les CGroups permettent de limiter l'utilisation de la memoire d'un processus.
 Pour faire cela, nous avons créer un programme qui alloue de la memoire par block de 2MB, et qui rempli cette memoire avec des 0.
 voici ce programme : \\
-\begin{lstlisting}[style=CStyle, caption=Allocation de memoire]{Name}
+\begin{lstlisting}[style=CStyle, caption=Allocation de memoire, firstnumber=1]{Name}
 	#define NUM_BLOCKS 50
 	#define MEGABYTE 1024 * 1024
 	#define BLOCK_SIZE (2 * MEGABYTE)
@@ -255,7 +255,7 @@ Nous avons aussi ajouter un getchar() afin de pouvoir faire alloué un nouveau b
 \linebreak
 avant de lancer ce code, il est necessaire de créer un groupe de controle, et de limiter la memoire de ce groupe. Afin de simplifier l'utilisation de ce programme, nous avons écrit un script qui permet de faire cela.
 
-\begin{lstlisting}[language=bash]{Name}
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
 #!/bin/sh
 mount -t tmpfs none /sys/fs/cgroup
 mkdir /sys/fs/cgroup/memory
@@ -287,7 +287,7 @@ Ce qui correspond bien a la limite de 20MB que nous avons fixé.
 Lorsque le quota de memoire est epuisé, le kernel tue le processus qui a essayé d'allouer de la memoire.
 Selon cette documentation \footnote{\href{https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/resource_management_guide/sec-memory}{https://access.redhat.com/documentation/en-us/red\_hat\_enterprise\_linux/6/html/resource\_management\_guide/sec-memory}}.
 Il est possible de legerement modifier le comportement en utilisant le commande :
-\begin{lstlisting}[language=bash]{Name}
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
 	echo 1 > /sys/fs/cgroup/memory/mem/memory.oom_control
 \end{lstlisting}
 Cette commande desactive le "OOM Killer", si un programme atteint ça limite de memoire, il sera mis en pause j'usqu'a ce qu'il y ai de la memoire de disponible.
@@ -296,7 +296,7 @@ Cette commande desactive le "OOM Killer", si un programme atteint ça limite de 
 Afin de surveiller la memoire, il y a plusieur options simple, comme la commande top, htop.
 la fonction free permet aussi de voir l'etat de la memoire. Mais elle donne des informations sur la memoire globale, et non sur un processus en particulier.
 Il est aussi possible de voir l'etat de la memoire d'un processus en utilisant la commande :
-\begin{lstlisting}[language=bash]{Name}
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
 	cat /proc/<PID>/stat | awk '{print $23}'
 \end{lstlisting}
 \end{enumerate}
@@ -311,6 +311,83 @@ Toutefois, il est bon de savoir qu'il est possible de limiter la memoire d'un pr
 \subsubsection{Exercice 3 CGroups Controle du CPU}\label{MPEx3}
 % Afin de valider la capacité des groupes de contrôle de limiter l’utilisation des CPU, 
 % concevez une petite application composée au minimum de 2 processus utilisant le 100% des ressources du processeur.
+Dans cet exercice, l'objectif est de limiter l'utilsation du CPU par un processus.
+Pour cela, nous avons crée un programme qui lance 2 processus faisant des calcul afin de charger les CPU. 
+Nous avons utiliser la fonction fork() vue dans l'exercice 1 (\ref{MPEx1}).
+
+Ce programme nous permet de simplement lancer 2 processus qui vont charger les CPU.\\
+\noindent\begin{minipage}{.50\textwidth}
+	\begin{lstlisting}[style=CStyle, caption=Processus Enfant, firstnumber=1]{Name}
+	int main(void)
+	{
+		pid_t pid;
+		pid = fork();
+		if (pid == 0) { // child
+			compute();
+			exit(0);
+		}
+		else { // parent
+			compute();
+		}
+		// must wait for child to exit
+		// waitpid(pid, NULL, 0);
+		wait(NULL);
+		return 0;
+	}
+	\end{lstlisting}
+	\end{minipage}\hfill
+	\begin{minipage}{.45\textwidth}
+	\begin{lstlisting}[style=CStyle, caption=Processus Parent, firstnumber=1]{Name}
+	void compute() {
+		int a = 0;
+		while (1) {
+			// do some random computation
+			a = (a + 1) % 1000000;
+		}
+	}
+	\end{lstlisting}
+\end{minipage}
+
+Il reste a configurer les CGroups pour limiter l'utilisation du CPU par les processus. Pour faire cela, les ligne de commande nous ont été fourni.
+
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
+#!/bin/sh
+mkdir /sys/fs/cgroup/cpuset
+mount -t cgroup -o cpu,cpuset cpuset /sys/fs/cgroup/cpuset
+mkdir /sys/fs/cgroup/cpuset/high
+mkdir /sys/fs/cgroup/cpuset/low
+echo 3 > /sys/fs/cgroup/cpuset/high/cpuset.cpus
+echo 0 > /sys/fs/cgroup/cpuset/high/cpuset.mems
+echo 2 > /sys/fs/cgroup/cpuset/low/cpuset.cpus
+echo 0 > /sys/fs/cgroup/cpuset/low/cpuset.mems
+echo $$ > /sys/fs/cgroup/cpuset/high/tasks
+./ex3
+\end{lstlisting}
+Pour simplifier l'exercice, nous avons fait deux script bash, un qui lance le processus dans le groupe high, et un autre qui le lance dans le groupe low.
+La seul difference se trouve a la ligne 10, ou nous changeons "high" en "low".
+
+
+\begin{enumerate}[label=\textbf{\arabic*}]
+	\item \textbf{Les 4 dernières lignes sont obligatoires pour que les prochaines commandes fonctionnent correctement. Pouvez-vous en donner la raison ?}\\
+	La documentation trouvable ici : \footnote{\href{https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/resource_management_guide/sec-cpuset}{https://access.redhat.com/documentation/en-us/red\_hat\_enterprise\_linux/6/html/resource\_management\_guide/sec-cpuset}}
+	nous indique que cpuset.cpus et cpuset.mems sont mandatoires pour chaque cgroup.
+	le fichier cpuset.cpus permet de speficier sur quels CPU le processus peut s'executer, il est possible de specifier un intervalle de cpu, ou une liste.
+	le fichier cpuset.mems permet de specifier quels noeud memoire le processus peut utiliser.
+	
+	
+	Il est necessaire de specifier sur quelle CPU les processus vont s'executer
+	\item \textbf{Ouvrez deux shells distincts et placez une dans le cgroup high et l’autre dans le cgroup low, par exemple :}\\
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
+$ ssh root@192.168.0.14
+$ echo $$ > /sys/fs/cgroup/cpuset/low/tasks
+\end{lstlisting}
+\textbf{Lancez ensuite votre application dans chacun des shells. Quel devrait être le bon comportement ? Pouvez-vous le vérifier ?}\\
+
+
+	\item \textbf{Sachant que l’attribut cpu.shares permet de répartir le temps CPU entre différents cgroups, comment devrait-on procéder pour lancer deux tâches distinctes sur le cœur 4 de notre processeur et attribuer 75\% du temps CPU à la première tâche et 25\% à la deuxième ?}\\
+
+\end{enumerate}
+
 
 \section{Conclusion}
 
