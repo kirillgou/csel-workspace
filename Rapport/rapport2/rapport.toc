@@ -6,4 +6,5 @@
 \contentsline {subsubsection}{\numberline {2.2.1}Exercice 1 Processus et signaux}{3}{subsubsection.2.2.1}%
 \contentsline {subsubsection}{\numberline {2.2.2}Exercice 2 CGroups Limitation memoire}{4}{subsubsection.2.2.2}%
 \contentsline {subsubsection}{\numberline {2.2.3}Exercice 3 CGroups Controle du CPU}{6}{subsubsection.2.2.3}%
-\contentsline {section}{\numberline {3}Conclusion}{7}{section.3}%
+\contentsline {subsection}{\numberline {2.3}Outils d'analyse de performance pour Linux}{9}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Conclusion}{12}{section.3}%

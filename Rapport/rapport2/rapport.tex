@@ -382,12 +382,217 @@ $ ssh root@192.168.0.14
 $ echo $$ > /sys/fs/cgroup/cpuset/low/tasks
 \end{lstlisting}
 \textbf{Lancez ensuite votre application dans chacun des shells. Quel devrait être le bon comportement ? Pouvez-vous le vérifier ?}\\
+le programme appartenant au cgroupe high devrait tourner sur le CPU 3, alors que le programme appartenant au groupe low devrait tourner sur le CPU 2.
+De plus comme un seul CPU est associé a 2 processus, le temps CPU devrait etre partagé entre les deux processus. la charge sera donc toujours de 100\% sur un CPU, mais partagé a 50\% entre les deux processus.
+Afin de verifier cela, nous pouvons utiliser la commande htop, qui nous permet de voir l'utilisation des CPU.
+Voici l'execution du script runEx3Low.sh :
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{MPEx3Low}
+	\caption{Execution du script runEx3Low.sh}
+	\label{fig:MPEx3Low}
+\end{figure}
+Sans arreter le script runEx3Low.sh, nous pouvons lancer le script runEx3High.sh :
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{MPEx3HighLow}
+	\caption{Execution du script runEx3High.sh}
+	\label{fig:MPEx3High}
+\end{figure}
+
+En modifiant la ligne 6 et 8, on peut faire en sorte que les processus se repartisse sur les 4 CPU, et non pas seulement 2.
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
+echo 2-3 > /sys/fs/cgroup/cpuset/high/cpuset.cpus
+echo 0 > /sys/fs/cgroup/cpuset/high/cpuset.mems
+echo 0-1 > /sys/fs/cgroup/cpuset/low/cpuset.cpus
+echo 0 > /sys/fs/cgroup/cpuset/low/cpuset.mems
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{MPEx3HighLow4CPU}
+	\caption{Execution des deux scripts avec 4 CPU}
+	\label{fig:MPEx3HighLow4CPU}
+\end{figure}
 
 
 	\item \textbf{Sachant que l’attribut cpu.shares permet de répartir le temps CPU entre différents cgroups, comment devrait-on procéder pour lancer deux tâches distinctes sur le cœur 4 de notre processeur et attribuer 75\% du temps CPU à la première tâche et 25\% à la deuxième ?}\\
 
+Ici on veux faire tourner tous nos programme sur le CPU4, donc un peut ecrire.
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
+echo 3 > /sys/fs/cgroup/cpuset/high/cpuset.cpus
+echo 0 > /sys/fs/cgroup/cpuset/high/cpuset.mems
+echo 3 > /sys/fs/cgroup/cpuset/low/cpuset.cpus
+echo 0 > /sys/fs/cgroup/cpuset/low/cpuset.mems
+# set the cpu.shares
+echo 768 > /sys/fs/cgroup/cpuset/high/cpu.shares
+echo 256 > /sys/fs/cgroup/cpuset/low/cpu.shares
+# change high to low for the other script
+echo $$ > /sys/fs/cgroup/cpuset/high/tasks 
+./ex3
+\end{lstlisting}
+Pour ce test, nous avons réutiliser le programme qui genere deux processus, nous aurons donc 2 processus qui se partageront 75\% du temps CPU, et deux autre pour les 25\% restant.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{runEx3Share}
+	\caption{Execution des deux scripts avec 4 CPU}
+	\label{fig:runEx3Share}
+\end{figure}
+On peut observer sur la figure \ref{fig:runEx3Share} que les deux processus on 37.5\% du temps CPU, et les deux autres 12.5\%.
+ce qui fait bien 75\% et 25\%.
+
+Ce TP etait tres proche du precedent, mais nous avons appris a gerer les ressource CPU alloué a un processus, et comment les partager entre plusieurs processus.
 \end{enumerate}
 
+
+\subsection{Outils d'analyse de performance pour Linux}
+Dans cette partie, nous allons nous familiariser avec l'outil perf de Linux. Cet outil permet de mesurer les performances d'un programme. Il est possible de mesurer le temps d'execution d'un programme, le nombre de cycles d'horloge, le nombre d'instructions, le nombre de cache miss, etc.\\
+
+tout d'abord, nous commencons par ajotuer binutils dans buildroot :
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
+$ cd /buildroot
+$ make menuconfig
+$ Target packages -> Development tools -> binutils
+$ Target packages -> Development tools -> binutils binaries
+$ make -j4
+\end{lstlisting}
+
+Puis nous installon le nouveau buildroot en prenant garde de ne pas effacer la configuration dans /etc/fstab, en utilisant les commande fournis dans le cours.
+Apres avoir verifié que perfo soit bien installé, nous avons lancé la commande perf sur l'exercice 1 :
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
+$ perf stat ./ex1
+\end{lstlisting}
+Et nous avons obtenu le resultat suivant :
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{perfEx1}
+	\caption{Execution des deux scripts avec 4 CPU}
+	\label{fig:runEx3Share}
+\end{figure}
+
+\begin{enumerate}[label=\textbf{\arabic*}]
+	\item \textbf{Ce programme contient une erreur triviale qui empêche une utilisation optimale du cache. De quelle erreur s’agit-il ?}
+L'erreur est que le tableau est parcuru en entier entre chaque increment, si tout le tableau rentrait dans la cache, cela pourrait ne pas poser de probleme.
+Mais ici, le tableau est trop grand pour rentrer dans le cache, et donc a chaque increment, le cache est vidé, et le tableau est rechargé dans le cache, ce qui prend du temps.
+Une modification simple pour rendre ce code plus efficace serait de deplacer la boucle d'increment a l'interieur des deux boucles.
+
+\noindent\begin{minipage}{.45\textwidth}
+	\begin{lstlisting}[style=CStyle, caption=Code fournis, firstnumber=1]{Name}
+for (k = 0; k < 10; k++)
+{
+	for (i = 0; i < SIZE; i++)
+	{
+		for (j = 0; j < SIZE; j++)
+		{
+			array[j][i]++;
+		}
+	}
+}
+	\end{lstlisting}
+	\end{minipage}\hfill
+	\begin{minipage}{.45\textwidth}
+	\begin{lstlisting}[style=CStyle, caption=Code modifié, firstnumber=1]{Name}
+for (i = 0; i < SIZE; i++)
+{
+	for (j = 0; j < SIZE; j++)
+	{
+		for (k = 0; k < 10; k++)
+		{
+			// memory access already in cache
+			array[j][i]++;
+		}
+	}
+}
+	\end{lstlisting}
+\end{minipage}
+
+Afin d'avoir un point de comparaison, nous avons lancé le programme de base avec la commande perf :
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
+$ perf stat -e cache-misses ./ex1
+\end{lstlisting}
+Et nous avons obtenu le resultat suivant :
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{perfEx1Cache}
+	\caption{Execution des deux scripts avec 4 CPU}
+	\label{fig:runEx3Share}
+\end{figure}
+
+	\item \textbf{Corrigez l’erreur, recompilez et mesurez à nouveau le temps d’exécution (soit avec perf stat, soit avec la commande time). Quelle amélioration constatez-vous ?}
+
+
+
+Puis nous avons relancé le programme avec la correction :
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{perfEx1CacheOpti}
+	\caption{Execution des deux scripts avec 4 CPU}
+	\label{fig:runEx3Share}
+\end{figure}
+le temps est passé de 41.7s a 5.8s et le nombre de cache miss de 407143880 a 42339357. Il y a 9.6x moins de cache miss, et le temps d'execution est 7.2x plus rapide.\\
+En modifiant une simple boucle
+
+\item \textbf{Relevez les valeurs du compteur L1-dcache-load-misses pour les deux versions de l’application. Quel facteur constatez-vous entre les deux valeurs ?}
+
+% array of two line and two column
+\begin{center}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		& \textbf{Sans correction} & \textbf{Avec correction} \\
+		\hline
+		\textbf{L1-dcache-load-misses} & 406895610 & 42289308 \\
+		\hline
+		\textbf{cache-misses} & 407143880 & 42339357 \\
+		\hline
+	\end{tabular}
+\end{center}
+Les resultat sont similaire au deux resultat precedent, il y a 9.6x moins de cache miss, et le temps d'execution est 7.2x plus rapide.
+
+
+\item \textbf{Décrivez brièvement ce que sont les évènements suivants :}
+% add a sub-list to the question
+\begin{enumerate}[label=\textbf{\alph*}]
+	\item \textbf{instructions :} le nombre d'instruction executé
+	\item \textbf{cache-misses :} le nombre de cache miss
+	\item \textbf{branch-misses :} le nombre de branch miss
+	\item \textbf{L1-dcache-load-misses :} le nombre de cache miss de niveau 1
+	\item \textbf{cpu-migrations :} le nombre de migration de processus
+	\item \textbf{context-switches :} le nombre de changement de contexte
+\end{enumerate}
+
+\item \textbf{Lors de la présentation de l’outil perf, on a vu que celui-ci permettait de profiler une application avec très peu d’impacts sur les performances. En utilisant la commande time, mesurez le temps d’exécution de notre application ex1 avec et sans la commande perf stat}\\
+L'execution de la commande perf stat a pris 5.477 secondes, et l'execution de la commande time a pris 5.07 secondes. Mais il faudrait effectuer plusieur lancement pour avoir une moyenne plus precise.
+On peut observer que le programme prend 0.4s de plus avec perf stat, ce qui est tres peu, et donc on peut dire que perf stat a tres peu d'impact sur les performances.
+
+% exercice 2
+passons à l'exercice 2
+\item \textbf{Décrivez en quelques mots ce que fait ce programme.}\\
+Le programme commence par remplir un tableau de 65536 entier avec des valeurs aléatoire entre 0 et 512 (en réalité les valeur ne sont pas aléatoire car la seed est toujorus la meme, la somme sera toujorus la meme).
+Ensuite deux boucle for effectue 10000 fois la somme des valeur plus grande ou egale à 256.
+
+\item \textbf{Mesurez le temps d’exécution}\\
+Voici le resultat de l'execution du programme :
+
+
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
+# time ./ex2 
+sum=125454290000
+real	0m 26.19s
+user	0m 26.11s
+sys	0m 0.00s
+\end{lstlisting}
+le programme prend 26 seconde pour s'executer.
+dan le prochain test, nous allons essayer de trier le tableau en ajoutant ces ligne de code :
+\begin{lstlisting}[style=CStyle, caption=Code modifié, firstnumber=1]{Name}
+static int compare (const void* a, const void* b)
+{
+    return *(short*)a - *(short*)b;
+}
+
+qsort(array, SIZE, sizeof(short), compare);
+\end{lstlisting}
+
+\end{enumerate}
 
 \section{Conclusion}
 
