@@ -521,7 +521,6 @@ Et nous avons obtenu le resultat suivant :
 	\item \textbf{Corrigez l’erreur, recompilez et mesurez à nouveau le temps d’exécution (soit avec perf stat, soit avec la commande time). Quelle amélioration constatez-vous ?}
 
 
-
 Puis nous avons relancé le programme avec la correction :
 \begin{figure}[H]
 	\centering
@@ -564,8 +563,12 @@ Les resultat sont similaire au deux resultat precedent, il y a 9.6x moins de cac
 L'execution de la commande perf stat a pris 5.477 secondes, et l'execution de la commande time a pris 5.07 secondes. Mais il faudrait effectuer plusieur lancement pour avoir une moyenne plus precise.
 On peut observer que le programme prend 0.4s de plus avec perf stat, ce qui est tres peu, et donc on peut dire que perf stat a tres peu d'impact sur les performances.
 
+\end{enumerate}
+
 % exercice 2
-passons à l'exercice 2
+\textbf{Exercice 2 :}
+\begin{enumerate}[label=\textbf{\arabic*}]
+
 \item \textbf{Décrivez en quelques mots ce que fait ce programme.}\\
 Le programme commence par remplir un tableau de 65536 entier avec des valeurs aléatoire entre 0 et 512 (en réalité les valeur ne sont pas aléatoire car la seed est toujorus la meme, la somme sera toujorus la meme).
 Ensuite deux boucle for effectue 10000 fois la somme des valeur plus grande ou egale à 256.
@@ -581,20 +584,71 @@ real	0m 26.19s
 user	0m 26.11s
 sys	0m 0.00s
 \end{lstlisting}
-le programme prend 26 seconde pour s'executer.
-dan le prochain test, nous allons essayer de trier le tableau en ajoutant ces ligne de code :
+
+Le programme prend 26,19 seconde pour s'executer.
+dans le prochain test, nous allons essayer de trier le tableau en ajoutant ces ligne de code :
 \begin{lstlisting}[style=CStyle, caption=Code modifié, firstnumber=1]{Name}
 static int compare (const void* a, const void* b)
 {
     return *(short*)a - *(short*)b;
 }
-
 qsort(array, SIZE, sizeof(short), compare);
 \end{lstlisting}
 
+Le temps est a present de 23.45 secondes, nous avons gagner 2.74 secondes.
+
+\item \textbf{À l’aide de l’outil perf et de sa sous-commande stat, en utilisant différents compteurs déterminez pourquoi le programme modifié s’exécute plus rapidement.}\\
+
+D'apres nos mesure, le gain de vitesse, viens des prediction de branchement.
+Voici les resultat de perf stat : (les autre resultat sont assez similaire)\\
+327884259      branch-misses             \#   33.17\% of all branches\\
+842261         branch-misses             \#    0.08\% of all branches\\
+
+Le fait que le tableau soit trié permet d'avoir de meilleur prediction de branchement, donc le pipeline est moins souvent cassé.
 \end{enumerate}
 
+
+% Exercice 3
+
+\textbf{Exercice 3 :}
+\begin{enumerate}[label=\textbf{\arabic*}]
+
+\item \textbf{Compilez l’application et profilez l’application avec perf record :}\\
+Nous executons la commande suivante :
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
+perf record --call-graph dwarf -e cpu-clock -F 75 \
+./read-apache-logs access_log_NASA_Jul95_samples
+\end{lstlisting}
+
+un fichier report.data est généré, que nous analysons avec la commande suivante :
+\begin{lstlisting}[language=bash, firstnumber=1]{Name}
+perf report --no-children --demangle
+\end{lstlisting}
+\item \textbf{Avec les instructions précédentes, déterminez quelle fonction de notre application fait (indirectement) appel à std::operator==<char>.}\\
+
+Le probleme viens de ce fonction :
+\begin{lstlisting}[style=CStyle, caption=Extrait de hostcounter.cpp, firstnumber=1]{Name}
+bool HostCounter::isNewHost(std::string hostname)
+{
+    return std::find(myHosts.begin(), myHosts.end(), hostname) == myHosts.end();
+}
+\end{lstlisting}
+
+\item \textbf{Maintenant que vous savez quelle fonction utilise le plus de ressources CPU, trouvez une optimisation du code permettant de réduire drastiquement le temps d’exécution (vous devriez arriver à quelques dixièmes de secondes pour le fichier sample).}\\
+Nous modifions le code afin d'utiliser la structure set, au lieu de vector et testons le temps d'exectution avec la commande time.
+Le temps est a present de 1.49s, contre 2 minutes et 18 secondes avant la modification.
+En executant a nouveau la commande perf record, nous pouvons voir que les fonction memcmp et cfree, sont les plus utilisé.
+
+\item \textbf{Décrivez comment devrait-on procéder pour mesurer la latence et la gigue d’interruption, ceci aussi bien au niveau du noyau (kernel space) que de l’application (user space)}\\
+Dans le cas d'un systeme embarqué avec une routine d'interuptions assigné a une pin, on pourrait envoyé un signal carré sur la pin d'interruption.
+Puis inverser l'etat d'une pin de sortie, dans la routine d'interruption.
+Ensuite a l'aide d'un oscilloscope, on pourrait mesurer la latence et la gigue d'interruption. en effectuant des moyenne, et en calculant l'ecart type.
+\end{enumerate}
+
+
 \section{Conclusion}
+
+blabla
 
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
