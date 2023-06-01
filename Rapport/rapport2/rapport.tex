@@ -339,8 +339,8 @@ La fonction setAffinity que nous avons créer utilise sched\_setaffinity, voici 
 		return 0;
 	}
 \end{lstlisting}
-La communication entre les deux process est assez simple \'etant donnée, que nous avons simplement 2 descripteurs de fichier, du point de vue de notre programme, c'est comme si nous allions écrire/lire dans un fichier.
-Il ne reste plus qu'as lire le descripteur de fichier dans le parent, et d'écrire avec l'enfant.\\
+La communication entre les deux process est assez simple \'etant donnée, que nous avons simplement 2 descripteurs de fichier, du point de vue de notre programme. C'est comme si nous allions écrire ou lire dans un fichier.
+Il ne reste plus qu'a lire le descripteur de fichier dans le parent, et d'écrire avec l'enfant.\\
 \noindent\begin{minipage}{.50\textwidth}
 \begin{lstlisting}[style=CStyle, caption=Processus Enfant, firstnumber=1]{Name}
 void child(int socket) {
@@ -383,23 +383,23 @@ void parent(int socket) {
 }
 \end{lstlisting}
 \end{minipage}
-Il faut tout de m\^eme faire attention \`a plusieurs choses, premi\`erement le parent peut recevoir deux messages en m\^eme temps avec la fonction read(), il faut donc faire attention a bien lire le message en entier.
-Car on pourrait recevoir "message""exit", avec un z\'ero terminal entre les deux. Ce qui ferait que le programme ne s'arr\^eterait pas.
-Ensuite la taille du buffer pourrait ne pas \^etre suffisante pour lire le message en entier, ce qui pourrait crée un buffer overflow.\\
+Il faut tout de m\^eme faire attention \`a plusieurs choses, premi\`erement le parent peut recevoir deux messages en m\^eme temps avec la fonction read(), il faut donc faire attention à bien lire le message en entier.
+Il est possible de recevoir "message""exit", avec un z\'ero terminal entre les deux. Ce qui ferait que le programme ne s'arr\^eterait pas.
+Ensuite, la taille du buffer peut ne pas \^etre suffisante pour lire le message en entier, ce qui peut creer un buffer overflow.\\
 
 % Synthese de ce qui as été appris/exercé
-Lors de ce TP, nous avons appris \`a utiliser les socketpair afin de communiquer entre deux processus.
-Nous avons aussi appris \`a ignorer des signaux, mais il aurait aussi été possible de les rediriger vers une fonction. Dans le but d'effectuer une action.
+Lors de ce TP, nous avons appris \`a utiliser les socketpairs afin de communiquer entre deux processus.
+Nous avons aussi appris \`a ignorer des signaux, mais il aurait aussi été possible de les rediriger vers une fonction dans le but d'effectuer une action.
 Gr\^ace\ \`a ce TP, nous avons appris \`a g\'erer un processus (création, affinité, communication, etc.). En utilisant les fonction fork(), schsed\_setaffinity(), socketpair(), etc...\\
 % \lineeak
 
-Ce labo a été plus compliquer que nous le pr\'ec\'edent, car nous avons eu de difficulté pour la r\'eception du message "exit". La solution retenue est simple, mais pourrait poser des probl\`emes.
-Il serait mieux de regarder le nombre de bytes re\c{c}u, et de parser le message re\c{c}u dans diff\'erent string, en utilisant les z\'eros terminal.
+Ce labo a été plus compliquer que nous le pr\'ec\'edent, car nous avons eu des difficultés pour la r\'eception du message "exit". La solution retenue est simple, mais pourrait poser des probl\`emes.
+Il serait mieux de regarder le nombre de bytes re\c{c}u, et de parser le message re\c{c}u dans diff\'erent string, en utilisant les z\'eros termineaux.
 
 
 \subsubsection{Exercice 2 CGroups Limitation memoire}\label{MPEx2}
 % Exercice #2: Concevez une petite application permettant de valider la capacité des groupes de contrôle à limiter l’utili\'eation de la mémoire.
-Dans cet exercice, l'objectif \'etait de montrer que les CGroups permettent de limiter l'utilisation de la m\'emoire d'un processus.
+Dans cet exercice, l'objectif est de montrer que les CGroups permettent de limiter l'utilisation de la m\'emoire d'un processus.
 Pour faire cela, nous avons créer un programme qui alloue de la m\'emoire par block de 2MB, et qui remplit cette m\'emoire avec des 0.
 voici ce programme : \\
 \begin{lstlisting}[style=CStyle, caption=Allocation de memoire, firstnumber=1]{Name}
@@ -439,9 +439,9 @@ echo $$ > /sys/fs/cgroup/memory/mem/tasks
 echo 20M > /sys/fs/cgroup/memory/mem/memory.limit_in_bytes
 ./ex2
 \end{lstlisting}
-Ce script monte un syst\`eme de fichier tmpfs, puis monte un groupe de contr\^ole sur ce syst\`eme de fichier.
-Ensuite il cr\'ee un groupe de contr\^ole, et limite la m\'emoire de ce groupe a 20MB \`a tous les processus qui y sont liés.
-Enfin il lance le programme qui alloue de la m\'emoire.
+Ce script monte un syst\`eme de fichier tmpfs, puis monte un groupe de contr\^ole dans ce syst\`eme de fichier.
+Ensuite, il cr\'ee un groupe de contr\^ole, et limite la m\'emoire de ce groupe a 20MB \`a tous les processus qui y sont liés.
+Enfin, il lance le programme qui alloue de la m\'emoire.
 
 \begin{figure}[H]
 	\centering
@@ -450,7 +450,7 @@ Enfin il lance le programme qui alloue de la m\'emoire.
 	\label{fig:ex2}
 \end{figure}
 
-Comme on peut le voir sur la figure \ref{fig:ex2}, le programme se fait tuer par le kernel lorsque l'on essaie d'allouer le 10e bloc de m\'emoire.
+Comme on peut le voir sur la figure \ref{fig:ex2}, le programme se fait tuer par le kernel lorsque l'il essaie d'allouer le 10e bloc de m\'emoire.
 Ce qui correspond bien a la limite de 20MB que nous avons fixé.
 
 \begin{enumerate}[label=\textbf{\arabic*}]
@@ -468,7 +468,7 @@ Cette commande d\'esactive le "OOM Killer", si un programme atteint ça limite d
 
 	\item \textbf{Est-il possible de surveiller/vérifier l’état actuel de la mémoire ? Si oui, comment ?}\\
 Afin de surveiller la m\'emoire, il y a plusieurs options simples, comme la commande top, htop.
-la fonction free permet aussi de voir l'\'etat de la m\'emoire. Mais elle donne des informations sur la m\'emoire globale, et non sur un processus en particulier.
+La fonction free permet aussi de voir l'\'etat de la m\'emoire. Elle donne des informations sur la m\'emoire globale et non sur un processus en particulier.
 Il est aussi possible de voir l'\'etat de la m\'emoire d'un processus en utilisant la commande :
 \begin{lstlisting}[language=bash, firstnumber=1]{Name}
 	cat /proc/<PID>/stat | awk '{print $23}'
@@ -479,7 +479,7 @@ Il est aussi possible de voir l'\'etat de la m\'emoire d'un processus en utilisa
 
 Nous ne connaissions pas du tout les CGroups, ce qui a rendu cet exercice tr\`es int\'eressant.
 Nous avons réussi \`a faire effectuer l'exercice, mais \`a un certain moment la limitation de m\'emoire ne fonctionnait pas.
-Il faudrait que l'on regarde plus en d\'etail comment fonctionne les CGroups, et comment les utiliser, la structure et le nombre de fichiers pr\'esents dans le syst\`eme de fichier /sys/fs/cgroup/memory/ est assez impressionnant.
+Il faudrait que nous regardions plus en d\'etail comment fonctionne les CGroups, et comment les utiliser, la structure et le nombre de fichiers pr\'esents dans le syst\`eme de fichier /sys/fs/cgroup/memory/ est assez impressionnant.
 Toutefois, il est bon de savoir qu'il est possible de limiter la m\'emoire d'un processus, et de voir comment cela fonctionne.
 
 \subsubsection{Exercice 3 CGroups Controle du CPU}\label{MPEx3}
@@ -545,17 +545,18 @@ La seule diff\'erence se trouve \`a la ligne 10, ou nous changeons "high" en "lo
 	\item \textbf{Les 4 dernières lignes sont obligatoires pour que les prochaines commandes fonctionnent correctement. Pouvez-vous en donner la raison ?}\\
 	La documentation trouvable ici : \footnote{\href{https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/resource_management_guide/sec-cpuset}{https://access.redhat.com/documentation/en-us/red\_hat\_enterprise\_linux/6/html/resource\_management\_guide/sec-cpuset}}
 	nous indique que cpuset.cpus et cpuset.mems sont mandatoires pour chaque cgroup.
-	le fichier cpuset.cpus permet de speficier sur quels CPU le processus peut s'ex\'ecuter, il est possible de sp\'ecifier un intervalle de cpu, ou une liste.
+	Le fichier cpuset.cpus permet de speficier sur quels CPU le processus peut s'ex\'ecuter. Il est possible de sp\'ecifier un intervalle de cpu, ou une liste.
 	Le fichier cpuset.mems permet de sp\'ecifier quels n\oe{}uds m\'emoires le processus peut utiliser.
 	
 	
-	Il est n\'ecessaire de sp\'ecifier sur quelle CPU les processus vont s'ex\'ecuter
+	Il est n\'ecessaire de sp\'ecifier sur quelle CPU les processus vont s'ex\'ecuter.
 	\item \textbf{Ouvrez deux shells distincts et placez une dans le cgroup high et l’autre dans le cgroup low, par exemple :}\\
 \begin{lstlisting}[language=bash, firstnumber=1]{Name}
 $ ssh root@192.168.0.14
 $ echo $$ > /sys/fs/cgroup/cpuset/low/tasks
 \end{lstlisting}
 \textbf{Lancez ensuite votre application dans chacun des shells. Quel devrait être le bon comportement ? Pouvez-vous le vérifier ?}\\
+% //Note pas compirs pourquoi 2,3 puis 50/50..
 Le programme appartenant au cgroupe high devrait tourner sur le CPU 3, alors que le programme appartenant au groupe low devrait tourner sur le CPU 2.
 De plus comme un seul CPU est associé \`a 2 processus, le temps CPU devrait \^etre partagé entre les deux processus. La charge sera donc toujours de 100\% sur un CPU, mais partagés \`a 50\% entre les deux processus.
 Afin de v\'erifier cela, nous pouvons utiliser la commande htop, qui nous permet de voir l'utilisation des CPU.
@@ -574,7 +575,7 @@ Sans arr\^eter le script runEx3Low.sh, nous pouvons lancer le script runEx3High.
 	\label{fig:MPEx3High}
 \end{figure}
 
-En modifiant les lignes 6 et 8, on peut faire en sorte que les processus se r\'epartissent sur les 4 CPU, et non pas seulement 2.
+En modifiant les lignes 6 et 8, nous pouvons faire en sorte que les processus se r\'epartissent sur les 4 CPU, et non pas seulement 2.
 \begin{lstlisting}[language=bash, firstnumber=1]{Name}
 echo 2-3 > /sys/fs/cgroup/cpuset/high/cpuset.cpus
 echo 0 > /sys/fs/cgroup/cpuset/high/cpuset.mems
@@ -592,7 +593,7 @@ echo 0 > /sys/fs/cgroup/cpuset/low/cpuset.mems
 
 	\item \textbf{Sachant que l’attribut cpu.shares permet de répartir le temps CPU entre différents cgroups, comment devrait-on procéder pour lancer deux tâches distinctes sur le cœur 4 de notre processeur et attribuer 75\% du temps CPU à la première tâche et 25\% à la deuxième ?}\\
 
-Ici on veut faire tourner tous nos programmes sur le CPU4, donc un peut \'ecrire.
+Ici nous voulons faire tourner tous nos programmes sur le CPU 4, donc un peut \'ecrire :
 \begin{lstlisting}[language=bash, firstnumber=1]{Name}
 echo 3 > /sys/fs/cgroup/cpuset/high/cpuset.cpus
 echo 0 > /sys/fs/cgroup/cpuset/high/cpuset.mems
@@ -612,17 +613,16 @@ Pour ce test, nous avons réutilis\'e le programme qui g\'en\`ere deux processus
 	\caption{Ex\'ecution des deux scripts avec 4 CPU}
 	\label{fig:runEx3Share}
 \end{figure}
-On peut observer sur la figure \ref{fig:runEx3Share} que les deux processus on 37.5\% du temps CPU, et les deux autres 12.5\%.
-ce qui fait bien 75\% et 25\%.
+Nous pouvons observer sur la figure \ref{fig:runEx3Share} que les deux processus on 37.5\% du temps CPU, et les deux autres 12.5\%, ce qui fait bien 75\% et 25\%.
 
-Ce TP était tr\`es proche du pr\'ec\'edent, mais nous avons appris a g\'erer les ressources CPU alloué a un processus, et comment les partager entre plusieurs processus.
+Ce TP était tr\`es proche du pr\'ec\'edent, mais nous avons appris à g\'erer les ressources CPU alloué à un processus et comment les partager entre plusieurs processus.
 \end{enumerate}
 
 
 \subsection{Outils d'analyse de performance pour Linux}
 Dans cette partie, nous allons nous familiariser avec l'outil perf de Linux. Cet outil permet de mesurer les performances d'un programme. Il est possible de mesurer le temps d'ex\'ecution d'un programme, le nombre de cycles d'horloge, le nombre d'instructions, le nombre de caches miss, etc.\\
 
-tout d'abord, nous commen\c{c}ons par ajouter binutils dans buildroot :
+Tout d'abord, nous commen\c{c}ons par ajouter binutils dans buildroot :
 \begin{lstlisting}[language=bash, firstnumber=1]{Name}
 $ cd /buildroot
 $ make menuconfig
@@ -702,8 +702,7 @@ Puis nous avons relancé le programme avec la correction :
 	\caption{Ex\'ecution des deux scripts avec 4 CPU}
 	\label{fig:runEx3Share}
 \end{figure}
-le temps est passé de 41.7s a 5.8s et le nombre de caches miss de 407143880 a 42339357. Il y a 9.6x moins de cache miss, et le temps d'ex\'ecution est 7.2x plus rapide.\\
-En modifiant une simple boucle
+Le temps passe de 41.7s à 5.8s et le nombre de caches miss de 407143880 à 42339357. Il y a 9.6x moins de cache miss, et le temps d'ex\'ecution est 7.2x plus rapide. Ceci en modifiant une simple boucle.
 
 \item \textbf{Relevez les valeurs du compteur L1-dcache-load-misses pour les deux versions de l’application. Quel facteur constatez-vous entre les deux valeurs ?}
 
@@ -719,9 +718,9 @@ En modifiant une simple boucle
 		\hline
 	\end{tabular}
 \end{center}
-Les r\'esultats sont similaires aux deux r\'esultats pr\'ec\'edents, il y a 9.6x moins\ de\ cache\ miss et le temps d'ex\'ecution est 7.2x plus rapide.
+Les r\'esultats sont similaires aux deux r\'esultats pr\'ec\'edents. Il y a 9.6x moins\ de\ cache\ miss et le temps d'ex\'ecution est 7.2x plus rapide.
 
-
+% //note  eitem?
 \'eitem \textbf{Décrivez brièvement ce que sont les évènements suivants :}
 % add a sub-list to the question
 \begin{enumerate}[label=\textbf{\alph*}]
@@ -734,8 +733,10 @@ Les r\'esultats sont similaires aux deux r\'esultats pr\'ec\'edents, il y a 9.6x
 \end{enumerate}
 
 \item \textbf{Lors de la présentation de l’outil perf, on a vu que celui-ci permettait de profiler une application avec très peu d’impacts sur les performances. En utilisant la commande time, mesurez le temps d’exécution de notre application ex1 avec et sans la commande perf stat}\\
-L'ex\'ecution de la commande perf stat a pris 5.477 secondes, et l'ex\'ecution de la commande time a pris 5.07 secondes. Mais il faudrait effectuer plusieurs\ lancements ps\ lancementsune moyenne plus pr\'ecise.
-On peut observer que le programme prend 0.4s de plus avec perf stat, ce qui est tr\`es peu, et donc on peut dire que perf stat a tresse peu d'impact sur les performances.
+L'ex\'ecution de la commande perf stat a pris 5.477 secondes et l'ex\'ecution de la commande time a pris 5.07 secondes. Mais il faudrait effectuer plusieurs\
+% //note ? milieur de la phrase 
+lancements ps\ lancementsune moyenne plus pr\'ecise.
+Nous pouvons observer que le programme prend 0.4s de plus avec perf stat, ce qui est tr\`es peu, et donc nous pouvons dire que perf stat a très peu d'impact sur les performances.
 
 \end{enumerate}
 
@@ -744,8 +745,8 @@ On peut observer que le programme prend 0.4s de plus avec perf stat, ce qui est 
 \begin{enumerate}[label=\textbf{\arabic*}]
 
 \item \textbf{Décrivez en quelques mots ce que fait ce programme.}\\
-Le programme commence par remplir un tableau de 65536 entier avec des valeurs aléatoires entre 0 et 512 (en réalité les valeurs ne sont pas aléatoires, car la seed est toujours la m\^eme, la somme sera toujours la m\^eme).
-Ensuite deux boucle for effectue 10000 fois la somme des valeurs plus grandes ou \'egales à 256.
+Le programme commence par remplir un tableau de 65536 entiers avec des valeurs aléatoires entre 0 et 512 (en réalité les valeurs ne sont pas aléatoires, car la seed est toujours la m\^eme, la somme sera toujours la m\^eme).
+Ensuite, deux boucles for effectuent 10000 fois la somme des valeurs plus grandes ou \'egales à 256.
 
 \item \textbf{Mesurez le temps d’exécution}\\
 Voici le r\'esultat de l'ex\'ecution du programme :
@@ -760,7 +761,7 @@ sys	0m 0.00s
 \end{lstlisting}
 
 Le programme prend 26,19 secondes pour s'ex\'ecuter.
-dans le prochain test, nous allons essayer de trier le tableau en ajoutant ces lignes de code :
+Dans le prochain test, nous allons essayer de trier le tableau en ajoutant ces lignes de code :
 \begin{lstlisting}[style=CStyle, caption=Code modifié, firstnumber=1]{Name}
 static int compare (const void* a, const void* b)
 {
@@ -778,7 +779,7 @@ Voici les r\'esultats de perf stat : (les autres r\'esultats\ \ d'event\ sont\ s
 32788425s\ dans\ les\ deux\ ex\'ecutions9.      branch-misses             \#   33.17\% of all branches\\
 842261         branch-misses             \#    0.08\% of all branches\\
 
-Le fait que le tableau soit trié permet d'avoir de meilleure pr\'ediction de branchement, donc le pipeline est moins souvent cassé.
+Le fait que le tableau soit trié permet d'avoir de meilleure pr\'ediction de branchement, donc le pipeline est moins souvent cassée.
 \end{enumerate}
 
 
@@ -794,7 +795,7 @@ perf record --call-graph dwarf -e cpu-clock -F 75 \
 ./read-apache-logs access_log_NASA_Jul95_samples
 \end{lstlisting}
 
-un fichier report.data est généré, que nous analysons avec la commande suivante :
+Un fichier report.data est généré, que nous analysons avec la commande suivante :
 \begin{lstlisting}[language=bash, firstnumber=1]{Name}
 perf report --no-children --demangle
 \end{lstlisting}
@@ -814,15 +815,15 @@ Le temps est \`a\ pr\'esent de 1.49s, contre 2 minutes et 18 secondes avant la m
 En ex\'ecutant \`a nouveau la commande perf record, nous pouvons voir que les fonctions memcmp et cfree, sont les plus utilisées.
 
 \item \textbf{Décrivez comment devrait-on procéder pour mesurer la latence et la gigue d’interruption, ceci aussi bien au niveau du noyau (kernel space) que de l’application (user space)}\\
-Dans le cas d'un syst\`eme embarqué avec une routine d'interruption assigné \`a une pin, on pourrait envoyer un signal carré sur la pin d'interruption.
+Dans le cas d'un syst\`eme embarqué avec une routine d'interruption assigné \`a une pin, nous pouvons envoyer un signal carré sur la pin d'interruption.
 Puis inverser l'\'etat d'une pin de sortie, dans la routine d'interruption.
-Ensuite \`a l'aide d'un oscilloscope, on pourrait mesurer la latence et la gigue d'interruption. En effectuant des moyennes, et en calculant l'\'ecart type.
+Ensuite \`a l'aide d'un oscilloscope, nous pouvons mesurer la latence et la gigue d'interruption. En effectuant des moyennes et en calculant l'\'ecart type.
 \end{enumerate}
 
 
 \section{Concluerion}
 
-blabla
+blabla beaucoup blabla robot qui roule sur les gros 
 
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
