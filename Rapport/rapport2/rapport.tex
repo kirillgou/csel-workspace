@@ -92,7 +92,7 @@ This is my link: \footnote{\href{http://www.latex-tutorial.com}{http://www.latex
 L'objectif de cet exercice est de reprendre un code faisant clignoter une LED utilisant 100\% d'un coeur du processeur et de le modifier afin qu'il utilise le système de fichier virtuel pour contrôler la LED. Au démarrage, la LED clignote à une fréquence de 2Hz. Les boutons nous permettent d'augmenter, diminuer ou réinitialiser la fréquence de clignotement. Les changements de fréquence de la LED sont reportés avec $syslog$.\\
 Pour commencer, nous ouvrons les descripteurs de fichier des boutons d'une manière similaire à celle utilisée pour la LED avec quelques modifications. La fonction ci-dessous permet de configurer les GPIOs des boutons en entrée, avec un détecteur de flanc montant. Elle retourne le descripteur de fichier de la valeur du bouton.\\
 
-\begin{lstlisting}[style=CStyle, caption=Fonction qui ouverture et configuration de boutton, firstnumber=1]{Name}
+\begin{lstlisting}[style=CStyle, caption=Fonction d'ouverture et configuration de boutton, firstnumber=1]{Name}
 int open_button(const char *gpio_path, const char *gpio_num){
 	// unexport pin out of sysfs (reinitialization)
 	int f = open(GPIO_UNEXPORT, O_WRONLY);
@@ -266,14 +266,14 @@ Cet exercice était particulièrement intéressant, car il nous a permis d'utili
 
 \subsection{Multiprocessing et Ordonnanceur}\label{multiprocess}
 \subsubsection{Exercice 1 Processus et signaux}\label{MPEx1}
-Le but de cet exercice \'etait de mettre en place une communication entre deux processus en utilisant un service Linux tel que socketpair.
-Le processus enfant devait envoyer des messages au processus parent qui devaient les afficher. Lorsque le process enfant envoie le message "exit" le programme doit se terminer.
-Il \'etait aussi demand\'e de fixer l'affinité des processus afin que le thread enfant effectue ces t\^aches sur le CPU 1 et le thread parent sur le CPU 0.
-Ainsi que d'ignorer les signaux SIGHUP, SIGINT, SIGQUIT, SIGABRT et SIGTERM.\\
+Le but de cet exercice est de mettre en place une communication entre deux processus en utilisant un service Linux tel que socketpair.
+Le processus enfant envoie des messages au processus parent qui les afficher. Lorsque le process enfant envoie le message "exit" le programme se terminer.
+Il est aussi demand\'e de fixer l'affinité des processus afin que le thread enfant effectue ces t\^aches sur le CPU 1 et le thread parent sur le CPU 0.
+Il est également demandé d'ignorer les signaux SIGHUP, SIGINT, SIGQUIT, SIGABRT et SIGTERM.\\
 
-Afin d'ignorer les signaux, nous avons utilis\'e la structure sigaction qui permet de modifier le comportement d'un signal.
-Chaque handler de signal a été assigné a SIG\_IGN, ce qui permet d'ignorer le signal.
-voici un extrait du code :
+Afin d'ignorer les signaux, nous utilisons la structure sigaction qui permet de modifier le comportement d'un signal.
+Chaque handler de signal est assigné à SIG\_IGN, ce qui permet d'ignorer le signal.
+Voici un extrait du code :
 
 \begin{lstlisting}[style=CStyle, firstnumber=1]
 	struct sigaction sa;
@@ -294,9 +294,9 @@ La création du socketpair se fait simplement avec ce bout de code :
         exit(1);
     }
 \end{lstlisting}
-Le param\`etre PF\_LOCAL permet de créer un socket local, SOCK\_STREAM permet de créer un socket de type TCP. La valeur 0 permet de spécifier le protocole par défaut (ici TCP).
+Le param\`etre PF\_LOCAL permet de créer un socket local et SOCK\_STREAM permet de créer un socket de type TCP. La valeur 0 permet de spécifier le protocole par défaut (ici TCP).
 
-Afin de crée les deux process, nous avons utiliser la fonction fork() qui permet de crée un processus enfant identique au processus parent.
+Afin de crée les deux process, nous avons utilisons la fonction fork() qui permet de crée un processus enfant identique au processus parent.
 Voici un extrait du programme apr\`es la fonction fork() :
 \begin{lstlisting}[style=CStyle, firstnumber=1]
 	pid = fork();
