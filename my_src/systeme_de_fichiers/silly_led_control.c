@@ -176,9 +176,9 @@ int open_timer(){ // see https://man7.org/linux/man-pages/man2/timerfd_create.2.
 }
 
 void change_led(){
-    static int cpt = DEFAULT_PERIOD;
+    static int cpt = 0;
     cpt = (cpt + 1) % 2;
-        pwrite(ctx[FD_LED].fd, cpt ? "1" : "0", sizeof("0"), 0);
+    pwrite(ctx[FD_LED].fd, cpt ? "1" : "0", sizeof("0"), 0);
 }
 
 void button_action(enum my_event ev, int wait_for_first_event){

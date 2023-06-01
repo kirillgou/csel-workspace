@@ -86,9 +86,183 @@
 
 This is my link: \footnote{\href{http://www.latex-tutorial.com}{http://www.latex-tutorial.com}}.
 
-\section{Programmation Systeme}
+\section{Programmation Système}
 
-\subsection{Systeme de fichier}\label{filesystem}
+\subsection{Système de fichier}\label{filesystem}
+L'objectif de cet exercice de reprendre un code faisant clignoter une LED utilisant 100\% d'un coeur du processeur et de le modifier afin qu'il utilise le système de fichier virtuel pour contrôler la LED. Au démarrage, la LED clignote à une fréquence de 2Hz. Les boutons nous permettent d'augmenter, diminuer ou réinitialiser la fréquence de clignotement. Les changements de fréquence de la LED sont reportés avec $syslog$.\\
+Pour commencer, nous ouvrons les descripteurs de fichier des boutons d'une manière similaire à celle utilisée pour la LED avec quelques modifications. La fonction ci-dessous permet de configurer les GPIOs des boutons en entrée, avec un détecteur de flanc montant. Elle retourne le descripteur de fichier de la valeur du bouton.\\
+
+\begin{lstlisting}[style=CStyle, caption=Fonction qui ouverture et configuration de boutton, firstnumber=1]{Name}
+int open_button(const char *gpio_path, const char *gpio_num){
+	// unexport pin out of sysfs (reinitialization)
+	int f = open(GPIO_UNEXPORT, O_WRONLY);
+	write(f, gpio_num, strlen(gpio_num));
+	close(f);
+
+	// export pin to sysfs
+	f = open(GPIO_EXPORT, O_WRONLY);
+	write(f, gpio_num, strlen(gpio_num));
+	close(f);
+
+	// config pin
+	char *path = malloc(strlen(gpio_path) + strlen("/direction") + 1);
+	strcpy(path, gpio_path);
+	strcat(path, "/direction");
+	f = open(path, O_WRONLY);
+	write(f, "in", 2);
+	close(f);
+	free(path);
+
+	// config edge
+	path = malloc(strlen(gpio_path) + strlen("/edge") + 1);
+	strcpy(path, gpio_path);
+	strcat(path, "/edge");
+	f = open(path, O_WRONLY);
+	write(f, "rising", 6);
+	close(f);
+	free(path);
+
+	// open gpio value attribute
+	path = malloc(strlen(gpio_path) + strlen("/value") + 1);
+	strcpy(path, gpio_path);
+	strcat(path, "/value");
+	f = open(path, O_RDWR);
+	free(path);
+	return f;
+}
+\end{lstlisting}
+
+Ces descripteurs de fichier sont placés dans un tableau de structure que nous avons créé, qui stocke l'entité avec son descripteur de fichier. Ce qui nous permet d'accéder plus facilement à tous nos descripteurs. Cette structure comporte également une variable nous permettant de savoir si l'évènement arrive pour la première fois pour éviter le 'faux' premier évènement des boutons.
+
+Nous avons ensuite initialisé le timer\footnote{\href{https://man7.org/linux/man-pages/man2/timerfd_create.2.html}{https://man7.org/linux/man-pages/man2/timerfd\_create.2.html}}. 
+Ce timer nous permet de générer un évènement à interval régulier. Nous avons utilisé la fonction $timerfd\_settime()$ pour configurer le timer. Cette fonction prend en paramètre une structure qui contient le temps avant le premier évènement et le temps entre chaque évènement.
+\begin{lstlisting}[style=CStyle, caption=Initialisation du timer, firstnumber=1]{Name}
+int open_timer(){
+	int fd = timerfd_create(CLOCK_MONOTONIC, 0);
+    if (fd == -1) {
+        printf("error timerfd_create: %s\n", strerror(errno));
+        return 1;
+    }
+    // default 2Hz => 500ms
+    struct itimerspec new_value;
+    // interval for periodic timer
+    new_value.it_interval.tv_sec = 0;
+    new_value.it_interval.tv_nsec = DEFAULT_PERIOD; 
+
+    // initial expiration (timer before first expiration)
+    new_value.it_value.tv_sec = 1;
+    new_value.it_value.tv_nsec = 0;
+    if (timerfd_settime(fd, 0, &new_value, NULL) == -1) {
+        printf("error timerfd_settime: %s\n", strerror(errno));
+        return 1;
+    }
+    syslog(LOG_INFO, "frequence: %.5fHz", S_IN_NSEC / (double)DEFAULT_PERIOD);
+    return fd;
+}
+\end{lstlisting}
+
+Une fois que nos périphériques sont correctement initialisés, nous créons un $epoll$ qui nous permet de multiplexer la surveillance de nos descripteurs de fichier. Nous y ajoutons nos descripteurs de fichier avec l'évènement qui leur sont associés. Dans notre cas, les boutons sont associés à l'évènement $EPOLLET$ pour détecter le flanc montant et le timer à l'évènement $EPOLLIN$ qui permet de recevoir un évènement à chaque fois que le timer a expiré. La fonction $epoll\_ctl$ nous permet d'ajouter le contexte à surveiller dans l'$epoll$. Et enfin, la fonction $epoll\_wait$ nous permet d'attendre l'arrivée d'un évènement sur tous nos descripteurs de fichier virtuel.
+
+Voici notre boucle principale qui permet de surveiller les évènements sur nos descripteurs de fichier.
+
+\begin{lstlisting}[style=CStyle, caption=Boucle principale, firstnumber=1]{Name}
+while(1){
+	// wait for event
+	struct epoll_event event_arrived[5];
+	int nr = epoll_wait(epfd, event_arrived, 5, -1);
+	if (nr == -1){
+		printf("error epoll_wait: %s\n", strerror(errno));
+		return 1;
+	}
+	for (int i = 0; i < nr; i++){
+		my_context *ctx = event_arrived[i].data.ptr;
+		switch (ctx->ev)
+		{
+		case EV_BTN_1: // increase frequence
+		case EV_BTN_2: // resert frequence
+		case EV_BTN_3: // decrease frequence
+			if (ctx->first_done == 0){
+				ctx->first_done = 1;
+				break;
+			}
+			button_action(ctx->ev, 0);
+			break;
+		case EV_TIMER:
+			read(ctx->fd, &time, sizeof(time));
+			change_led();
+			break;
+		default:
+			printf("error: unknow event\n");
+			break;
+		}
+	}
+}
+\end{lstlisting}
+
+Nous commençons par une attente passive sur l'arrivée d'un évènement sur nos descripteurs de fichier. Une fois que nous avons reçu un évènement, nous regardons quel est le contexte associé à ce dernier. Si c'est un bouton, nous appelons la fonction $button\_action$ qui permet de modifier la fréquence du timer, si ce n'est pas le premier évènement. Si c'est le timer, nous appelons la fonction $change\_led$ qui permet de changer l'état de la LED.\\
+La fonction $change\_led$ écrit successivement 1 et 0 dans le descripteur de fichier de la LED afin de la faire clignoter. La fonction $button\_action$ quant à elle identifie quel bouton a été pressé et modifie la fréquence du timer en fonction du bouton. Cette fonction prend un paramètre supplémentaire qui nous permet de choisir si nous voulons finir le cycle actuel du timer ou le faire passer directement sur la nouvelle fréquence. Nous gérons également l'underflow et l'overflow de la fréquence.
+\begin{lstlisting}[style=CStyle, caption=Routine LED et boutton, firstnumber=1]{Name}
+void change_led(){
+	static int cpt = 0;
+	cpt = (cpt + 1) % 2;
+	pwrite(ctx[FD_LED].fd, cpt ? "1" : "0", sizeof("0"), 0);
+}
+
+void button_action(enum my_event ev, int wait_for_first_event){
+	static uint64_t period = 0;
+	struct itimerspec current_value;
+	struct itimerspec new_value;
+	uint64_t last_period;
+
+	switch (ev){
+	case EV_BTN_1: // increase frequence
+		period /= 2;
+		if(period == 0){
+			period = 1;
+		}
+		break;
+	case EV_BTN_2: // resert frequence
+		period = DEFAULT_PERIOD;
+		break;
+	case EV_BTN_3: // decrease frequence
+		last_period = period;
+		period *= 2;
+		if(period < last_period){
+			period = last_period;
+		}
+		break;
+	default:
+		printf("error: unused event\n");
+		break;
+	}
+	// interval for new periodic timer
+	new_value.it_interval.tv_sec = period / S_IN_NSEC;
+	new_value.it_interval.tv_nsec = period % S_IN_NSEC;
+	
+	// if complete current period
+	if(wait_for_first_event){
+		// time until next expiration
+		if(timerfd_gettime(ctx[EV_TIMER].fd, &current_value) == -1){
+			printf("error timerfd_gettime: %s\n", strerror(errno));
+			return;
+		}
+		new_value.it_value.tv_sec = current_value.it_value.tv_sec;
+		new_value.it_value.tv_nsec = current_value.it_value.tv_nsec+1;
+	}else{// direct reset timer
+		new_value.it_value.tv_sec = 0;
+		new_value.it_value.tv_nsec = 1;// +1 to force to start timer
+	}
+	if (timerfd_settime(ctx[EV_TIMER].fd, 0, &new_value, NULL) == -1) {
+		printf("error timerfd_settime: %s\n", strerror(errno));
+		return;
+	}
+	syslog(LOG_INFO, "frequence: %.5fHz", S_IN_NSEC / (double)period);
+}
+\end{lstlisting}
+
+Notre code fonctionne correctement selon les spécifications. Nous avons également ajouté un $syslog$\footnote{\href{https://www.gnu.org/software/libc/manual/html_node/Syslog-Example.html}{https://www.gnu.org/software/libc/manual/html\_node/Syslog-Example.html}} qui nous permet de voir les changements de fréquence de la LED.\\
+Nous avons pu bien visualiser avec $htop$ que notre programme n'utilise plus 100\% du CPU si la fréquence n'est pas trop élevée. Quand la période diminuer à quelques nanoseconde, les évènements arrivent trop rapidement et nous pouvons observer la croissance de l'utilisation du CPU.\\
+Cet exercice était particulièrement intéressant, car il nous a permis d'utiliser le système de fichier virtuel de Linux pour contrôler nos périphériques. Nous avons également pu voir l'importance de la gestion des évènements pour la programmation système. La gestion des évènements en utilisant $epoll$ avec un multiplexage apporte une nouvelle esthétique au code que nous avons bien apprécié.
 
 \subsection{Multiprocessing et Ordonnanceur}\label{multiprocess}
 \subsubsection{Exercice 1 Processus et signaux}\label{MPEx1}
