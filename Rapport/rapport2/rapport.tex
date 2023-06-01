@@ -89,7 +89,7 @@ This is my link: \footnote{\href{http://www.latex-tutorial.com}{http://www.latex
 \section{Programmation Système}
 
 \subsection{Système de fichier}\label{filesystem}
-L'objectif de cet exercice de reprendre un code faisant clignoter une LED utilisant 100\% d'un coeur du processeur et de le modifier afin qu'il utilise le système de fichier virtuel pour contrôler la LED. Au démarrage, la LED clignote à une fréquence de 2Hz. Les boutons nous permettent d'augmenter, diminuer ou réinitialiser la fréquence de clignotement. Les changements de fréquence de la LED sont reportés avec $syslog$.\\
+L'objectif de cet exercice est de reprendre un code faisant clignoter une LED utilisant 100\% d'un coeur du processeur et de le modifier afin qu'il utilise le système de fichier virtuel pour contrôler la LED. Au démarrage, la LED clignote à une fréquence de 2Hz. Les boutons nous permettent d'augmenter, diminuer ou réinitialiser la fréquence de clignotement. Les changements de fréquence de la LED sont reportés avec $syslog$.\\
 Pour commencer, nous ouvrons les descripteurs de fichier des boutons d'une manière similaire à celle utilisée pour la LED avec quelques modifications. La fonction ci-dessous permet de configurer les GPIOs des boutons en entrée, avec un détecteur de flanc montant. Elle retourne le descripteur de fichier de la valeur du bouton.\\
 
 \begin{lstlisting}[style=CStyle, caption=Fonction qui ouverture et configuration de boutton, firstnumber=1]{Name}
