@@ -539,7 +539,7 @@ La seule diff\'erence se trouve \`a la ligne 10, ou nous changeons "high" en "lo
 	\item \textbf{Les 4 dernières lignes sont obligatoires pour que les prochaines commandes fonctionnent correctement. Pouvez-vous en donner la raison ?}\\
 	La documentation trouvable ici : \footnote{\href{https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/resource_management_guide/sec-cpuset}{https://access.redhat.com/documentation/en-us/red\_hat\_enterprise\_linux/6/html/resource\_management\_guide/sec-cpuset}}
 	nous indique que cpuset.cpus et cpuset.mems sont mandatoires pour chaque cgroup.
-	Le fichier cpuset.cpus permet de speficier sur quels CPU le processus peut s'ex\'ecuter. Il est possible de sp\'ecifier un intervalle de cpu, ou une liste.
+	Le fichier cpuset.cpus permet de specifier sur quels CPU le processus peut s'ex\'ecuter. Il est possible de sp\'ecifier un intervalle de cpu, ou une liste.
 	Le fichier cpuset.mems permet de sp\'ecifier quels n\oe{}uds m\'emoires le processus peut utiliser.
 	
 	
@@ -634,7 +634,7 @@ Et nous avons obtenu le r\'esultat suivant :
 	\centering
 	\includegraphics[width=0.7\linewidth]{perfEx1}
 	\caption{Ex\'ecution des deux scripts avec 4 CPU}
-	\label{fig:runEx3Share}
+	\label{fig:perfEx1}
 \end{figure}
 
 \begin{enumerate}[label=\textbf{\arabic*}]
@@ -682,7 +682,7 @@ Et nous avons obtenu le r\'esultat suivant :
 	\centering
 	\includegraphics[width=0.7\linewidth]{perfEx1Cache}
 	\caption{Ex\'ecution des deux scripts avec 4 CPU}
-	\label{fig:runEx3Share}
+	\label{fig:perfEx1Cache}
 \end{figure}
 
 	\item \textbf{Corrigez l’erreur, recompilez et mesurez à nouveau le temps d’exécution (soit avec perf stat, soit avec la commande time). Quelle amélioration constatez-vous ?}
@@ -693,7 +693,7 @@ Puis nous avons relancé le programme avec la correction :
 	\centering
 	\includegraphics[width=0.7\linewidth]{perfEx1CacheOpti}
 	\caption{Ex\'ecution des deux scripts avec 4 CPU}
-	\label{fig:runEx3Share}
+	\label{fig:perfEx1CacheOpti}
 \end{figure}
 Le temps passe de 41.7s à 5.8s et le nombre de caches miss de 407143880 à 42339357. Il y a 9.6x moins de cache miss, et le temps d'ex\'ecution est 7.2x plus rapide. Ceci en modifiant une simple boucle.
 
@@ -725,7 +725,7 @@ Les r\'esultats sont similaires aux deux r\'esultats pr\'ec\'edents. Il y a 9.6x
 \end{enumerate}
 
 \item \textbf{Lors de la présentation de l’outil perf, on a vu que celui-ci permettait de profiler une application avec très peu d’impacts sur les performances. En utilisant la commande time, mesurez le temps d’exécution de notre application ex1 avec et sans la commande perf stat}\\
-L'ex\'ecution de la commande perf stat a pris 5.477 secondes et l'ex\'ecution de la commande time a pris 5.07 secondes. Mais il faudrait effectuer plus lancement afin d'obtenir une moyenne plus précise.
+L'ex\'ecution de la commande perf stat a pris 5.477 secondes et l'ex\'ecution de la commande time a pris 5.07 secondes. Mais il faudrait effectuer plus de lancement afin d'obtenir une moyenne plus précise.
 Nous pouvons observer que le programme prend 0.4s de plus avec perf stat, ce qui est tr\`es peu, et donc nous pouvons dire que perf stat a très peu d'impact sur les performances.
 
 \end{enumerate}
