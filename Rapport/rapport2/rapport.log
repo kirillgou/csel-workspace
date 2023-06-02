@@ -1,6 +1,6 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2023.5.31)  31 MAY 2023 17:59
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2023.5.31)  2 JUN 2023 09:46
 entering extended mode
- restricted \write18 enabled.
+ \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
 **/home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/rapport.tex
@@ -995,14 +995,26 @@ Package: scrbase 2020/01/24 v3.29 KOMA-Script package (KOMA-Script-independent b
 Package: scrlfile 2020/01/24 v3.29 KOMA-Script package (loading files)
 )) (/usr/share/texlive/texmf-dist/tex/latex/tools/shellesc.sty
 Package: shellesc 2019/11/08 v1.0c unified shell escape interface for LaTeX
-Package shellesc Info: Restricted shell escape enabled on input line 77.
+Package shellesc Info: Unrestricted shell escape enabled on input line 75.
 ) (/usr/share/texlive/texmf-dist/tex/latex/trimspaces/trimspaces.sty
 Package: trimspaces 2009/09/17 v1.1 Trim spaces around a token list
 )
 \svg@box=\box62
 \c@svg@param@lastpage=\count431
 \c@svg@param@currpage=\count432
-) (/usr/share/texlive/texmf-dist/tex/latex/transparent/transparent.sty
+ (/usr/share/texlive/texmf-dist/tex/latex/ifplatform/ifplatform.sty
+Package: ifplatform 2017/10/13 v0.4a Testing for the operating system
+ (/usr/share/texlive/texmf-dist/tex/generic/catchfile/catchfile.sty
+Package: catchfile 2019/12/09 v1.8 Catch the contents of a file (HO)
+ (/usr/share/texlive/texmf-dist/tex/generic/etexcmds/etexcmds.sty
+Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
+))
+runsystem(uname -s > "rapport.w18")...executed.
+
+ (/home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/rapport.w18)
+runsystem(rm -- "rapport.w18")...executed.
+
+)) (/usr/share/texlive/texmf-dist/tex/latex/transparent/transparent.sty
 Package: transparent 2019/11/29 v1.4 Transparency via pdfTeX's color stack (HO)
  (/usr/share/texlive/texmf-dist/tex/latex/auxhook/auxhook.sty
 Package: auxhook 2019-12-17 v1.6 Hooks for auxiliary files (HO)
@@ -1060,8 +1072,6 @@ Now handling font encoding PD1 ...
 ... no UTF-8 mapping file for font encoding PD1
 ) (/usr/share/texlive/texmf-dist/tex/generic/intcalc/intcalc.sty
 Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
-) (/usr/share/texlive/texmf-dist/tex/generic/etexcmds/etexcmds.sty
-Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
 )
 \Hy@SavedSpaceFactor=\count444
 \pdfmajorversion=\count445
@@ -1363,7 +1373,7 @@ File: t1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 LaTeX Font Warning: Font shape `T1/cmtt/m/n' in size <5.5> not available
 (Font)              size <5> substituted on input line 65.
 
-<Figures/ImageTitle.png, id=40, 597.432pt x 127.9179pt>
+<Figures/ImageTitle.png, id=28, 597.432pt x 127.9179pt>
 File: Figures/ImageTitle.png Graphic file (type png)
 <use Figures/ImageTitle.png>
 Package pdftex.def Info: Figures/ImageTitle.png  used on input line 68.
@@ -1379,7 +1389,7 @@ LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
 (Font)              scaled to size 13.82408pt on input line 68.
 LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/sc' will be
 (Font)              scaled to size 13.82408pt on input line 68.
-<Figures/EMbeddedLinuxLogo.png, id=42, 385.44pt x 182.1204pt>
+<Figures/EMbeddedLinuxLogo.png, id=30, 385.44pt x 182.1204pt>
 File: Figures/EMbeddedLinuxLogo.png Graphic file (type png)
 <use Figures/EMbeddedLinuxLogo.png>
 Package pdftex.def Info: Figures/EMbeddedLinuxLogo.png  used on input line 71.
@@ -1397,22 +1407,7 @@ LaTeX Font Info:    Font shape `T1/XCharter-TLF/b/n' will be
 \openout5 = `rapport.toc'.
 
  [2]
-LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
-(Font)              scaled to size 7.00804pt on input line 87.
-LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
-(Font)              scaled to size 7.68005pt on input line 87.
-LaTeX Font Info:    Font shape `OT1/XCharter-TLF/m/n' will be
-(Font)              scaled to size 7.68005pt on input line 87.
-LaTeX Font Info:    Font shape `OT1/XCharter-TLF/m/n' will be
-(Font)              scaled to size 5.95203pt on input line 87.
-LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
-(Font)              scaled to size 5.95203pt on input line 87.
-LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
-(Font)              scaled to size 11.52008pt on input line 91.
-LaTeX Font Info:    Font shape `T1/XCharter-TLF/b/n' will be
-(Font)              scaled to size 11.52008pt on input line 91.
-
-Underfull \hbox (badness 10000) in paragraph at lines 95--99
+Underfull \hbox (badness 10000) in paragraph at lines 86--88
 
  []
 
@@ -1422,37 +1417,63 @@ File: lstlang1.sty 2019/09/10 1.8c listings language file
 File: lstmisc.sty 2019/09/10 1.8c (Carsten Heinz)
 )
 LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 105.
-
-Underfull \hbox (badness 10000) in paragraph at lines 148--153
-
- []
-
-[3]
-Underfull \hbox (badness 10000) in paragraph at lines 168--215
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 217--221
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 228--231
-
- []
-
-[4]
-LaTeX Font Info:    Trying to load font information for TS1+XCharter-TLF on input line 233.
+(Font)              scaled to size 7.68005pt on input line 89.
+LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
+(Font)              scaled to size 4.80003pt on input line 90.
+LaTeX Font Info:    Trying to load font information for TS1+XCharter-TLF on input line 90.
  (/home/tanguy/texmf/tex/latex/xcharter/TS1XCharter-TLF.fd
 File: TS1XCharter-TLF.fd 2017/06/25 (autoinst) Font definitions for TS1/XCharter-TLF.
 )
 LaTeX Font Info:    Font shape `TS1/XCharter-TLF/m/n' will be
-(Font)              scaled to size 7.68005pt on input line 233.
+(Font)              scaled to size 7.68005pt on input line 90.
+LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
+(Font)              scaled to size 7.00804pt on input line 131.
+LaTeX Font Info:    Font shape `OT1/XCharter-TLF/m/n' will be
+(Font)              scaled to size 7.68005pt on input line 131.
+LaTeX Font Info:    Font shape `OT1/XCharter-TLF/m/n' will be
+(Font)              scaled to size 5.95203pt on input line 131.
+LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
+(Font)              scaled to size 5.95203pt on input line 131.
+LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
+(Font)              scaled to size 5.28003pt on input line 132.
+ [3]
+Overfull \hbox (0.88177pt too wide) in paragraph at lines 158--159
+\T1/XCharter-TLF/m/n/10 plexer la surveil-lance de nos de-scrip-teurs de fichier. Nous y ajou-tons nos de-scrip-teurs de fichier avec l'évènement
+ []
 
-Underfull \hbox (badness 10000) in paragraph at lines 253--257
-\T1/XCharter-TLF/m/n/10 mem-oire.
+[4]
+LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
+(Font)              scaled to size 11.52008pt on input line 262.
+LaTeX Font Info:    Font shape `T1/XCharter-TLF/b/n' will be
+(Font)              scaled to size 11.52008pt on input line 262.
+
+Underfull \hbox (badness 10000) in paragraph at lines 263--267
+
+ []
+
+[5]
+Underfull \hbox (badness 10000) in paragraph at lines 316--321
+
+ []
+
+[6]
+Underfull \hbox (badness 10000) in paragraph at lines 336--383
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 385--389
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 396--399
+
+ []
+
+[7]
+Underfull \hbox (badness 10000) in paragraph at lines 421--425
+\T1/XCharter-TLF/m/n/10 mé-moire.
  []
 
 (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
@@ -1460,91 +1481,97 @@ File: lstlang1.sty 2019/09/10 1.8c listings language file
 ) (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2019/09/10 1.8c listings language file
 )
-<Figures/runEx2.png, id=167, 705.63625pt x 669.50125pt>
+<Figures/runEx2.png, id=334, 705.63625pt x 669.50125pt>
 File: Figures/runEx2.png Graphic file (type png)
 <use Figures/runEx2.png>
-Package pdftex.def Info: Figures/runEx2.png  used on input line 274.
+Package pdftex.def Info: Figures/runEx2.png  used on input line 442.
 (pdftex.def)             Requested size: 182.09486pt x 172.76881pt.
- [5 </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/runEx2.png>] [6]
-Underfull \hbox (badness 10000) in paragraph at lines 379--380
+ [8 </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/runEx2.png>] [9]
+Underfull \hbox (badness 10000) in paragraph at lines 547--548
 
  []
 
-<Figures/MPEx3Low.png, id=258, 799.98875pt x 487.8225pt>
+<Figures/MPEx3Low.png, id=417, 799.98875pt x 487.8225pt>
 File: Figures/MPEx3Low.png Graphic file (type png)
 <use Figures/MPEx3Low.png>
-Package pdftex.def Info: Figures/MPEx3Low.png  used on input line 391.
+Package pdftex.def Info: Figures/MPEx3Low.png  used on input line 559.
 (pdftex.def)             Requested size: 318.66948pt x 194.32162pt.
-<Figures/MPEx3HighLow.png, id=259, 799.98875pt x 487.8225pt>
+<Figures/MPEx3HighLow.png, id=418, 799.98875pt x 487.8225pt>
 File: Figures/MPEx3HighLow.png Graphic file (type png)
 <use Figures/MPEx3HighLow.png>
-Package pdftex.def Info: Figures/MPEx3HighLow.png  used on input line 398.
+Package pdftex.def Info: Figures/MPEx3HighLow.png  used on input line 566.
 (pdftex.def)             Requested size: 318.66948pt x 194.32162pt.
-[7 </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/MPEx3Low.png>]
-<Figures/MPEx3HighLow4CPU.png, id=279, 799.98875pt x 487.8225pt>
+[10 </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/MPEx3Low.png>]
+<Figures/MPEx3HighLow4CPU.png, id=431, 799.98875pt x 487.8225pt>
 File: Figures/MPEx3HighLow4CPU.png Graphic file (type png)
 <use Figures/MPEx3HighLow4CPU.png>
-Package pdftex.def Info: Figures/MPEx3HighLow4CPU.png  used on input line 413.
+Package pdftex.def Info: Figures/MPEx3HighLow4CPU.png  used on input line 581.
 (pdftex.def)             Requested size: 318.66948pt x 194.32162pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 419--420
+Underfull \hbox (badness 10000) in paragraph at lines 587--588
 
  []
 
-[8 </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/MPEx3HighLow.png> </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/MPEx3HighLow4CPU.png>]
-<Figures/runEx3Share.png, id=301, 799.98875pt x 487.8225pt>
+[11 </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/MPEx3HighLow.png> </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/MPEx3HighLow4CPU.png>]
+<Figures/runEx3Share.png, id=454, 799.98875pt x 487.8225pt>
 File: Figures/runEx3Share.png Graphic file (type png)
 <use Figures/runEx3Share.png>
-Package pdftex.def Info: Figures/runEx3Share.png  used on input line 437.
+Package pdftex.def Info: Figures/runEx3Share.png  used on input line 605.
 (pdftex.def)             Requested size: 318.66948pt x 194.32162pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 449--450
+Underfull \hbox (badness 10000) in paragraph at lines 616--617
 
  []
 
-<Figures/perfEx1.png, id=303, 818.05624pt x 502.87875pt>
+<Figures/perfEx1.png, id=456, 818.05624pt x 502.87875pt>
 File: Figures/perfEx1.png Graphic file (type png)
 <use Figures/perfEx1.png>
-Package pdftex.def Info: Figures/perfEx1.png  used on input line 468.
+Package pdftex.def Info: Figures/perfEx1.png  used on input line 635.
 (pdftex.def)             Requested size: 318.66948pt x 195.89172pt.
-[9 </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/runEx3Share.png>]
-<Figures/perfEx1Cache.png, id=323, 818.05624pt x 379.4175pt>
+[12 </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/runEx3Share.png>]
+<Figures/perfEx1Cache.png, id=476, 818.05624pt x 379.4175pt>
 File: Figures/perfEx1Cache.png Graphic file (type png)
 <use Figures/perfEx1Cache.png>
-Package pdftex.def Info: Figures/perfEx1Cache.png  used on input line 516.
+Package pdftex.def Info: Figures/perfEx1Cache.png  used on input line 683.
 (pdftex.def)             Requested size: 318.66948pt x 147.79854pt.
- [10 </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/perfEx1.png> </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/perfEx1Cache.png>]
-<Figures/perfEx1CacheOpti.png, id=361, 819.06pt x 377.41pt>
+ [13 </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/perfEx1.png> </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/perfEx1Cache.png>]
+<Figures/perfEx1CacheOpti.png, id=514, 819.06pt x 377.41pt>
 File: Figures/perfEx1CacheOpti.png Graphic file (type png)
 <use Figures/perfEx1CacheOpti.png>
-Package pdftex.def Info: Figures/perfEx1CacheOpti.png  used on input line 527.
+Package pdftex.def Info: Figures/perfEx1CacheOpti.png  used on input line 694.
 (pdftex.def)             Requested size: 318.66948pt x 146.83801pt.
- [11 </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/perfEx1CacheOpti.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 600--601
+ [14 </home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/Figures/perfEx1CacheOpti.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 765--766
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 602--606
+Underfull \hbox (badness 10000) in paragraph at lines 767--771
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 627--628
+Underfull \hbox (badness 10000) in paragraph at lines 792--793
 
  []
 
 
-LaTeX Warning: Empty bibliography on input line 657.
+Underfull \hbox (badness 10000) in paragraph at lines 807--811
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 661.
-[12] [13]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 661.
+ []
+
+[15]
+
+LaTeX Warning: Empty bibliography on input line 823.
+
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 827.
+[16]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 827.
  (/home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/rapport.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 661.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 661.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 827.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 827.
 Package rerunfilecheck Info: File `rapport.out' has not changed.
-(rerunfilecheck)             Checksum: E16FBBD17FFC776269BEBED59050ECF4;661.
+(rerunfilecheck)             Checksum: EF303597AE74590167D07E0FBCD9257A;448.
 
 
 LaTeX Font Warning: Size substitutions with differences
@@ -1558,18 +1585,18 @@ Package logreq Info: Writing requests to 'rapport.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 25544 strings out of 481239
- 454818 string characters out of 5920377
- 1242326 words of memory out of 5000000
- 40117 multiletter control sequences out of 15000+600000
- 642150 words of font info for 102 fonts, out of 8000000 for 9000
+ 25890 strings out of 481239
+ 459883 string characters out of 5920377
+ 1254388 words of memory out of 5000000
+ 40297 multiletter control sequences out of 15000+600000
+ 649740 words of font info for 107 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,12n,121p,914b,2432s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-t1.enc}{/home/tanguy/texmf/fonts/enc/dvips/xcharter/xch_q7u3cc.enc}{/home/tanguy/texmf/fonts/enc/dvips/xcharter/xch_uy5hgr.enc}{/home/tanguy/texmf/fonts/enc/dvips/xcharter/xch_lotb2t.enc}</home/tanguy/texmf/fonts/type1/public/xcharter/XCharter-Bold.pfb></home/tanguy/texmf/fonts/type1/public/xcharter/XCharter-Roman.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1000.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/newtx/txsys.pfb>
-Output written on /home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/rapport.pdf (13 pages, 1201328 bytes).
+{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-t1.enc}{/home/tanguy/texmf/fonts/enc/dvips/xcharter/xch_q7u3cc.enc}{/home/tanguy/texmf/fonts/enc/dvips/xcharter/xch_uy5hgr.enc}{/home/tanguy/texmf/fonts/enc/dvips/xcharter/xch_lotb2t.enc}</home/tanguy/texmf/fonts/type1/public/xcharter/XCharter-Bold.pfb></home/tanguy/texmf/fonts/type1/public/xcharter/XCharter-Roman.pfb></home/tanguy/texmf/fonts/type1/public/xcharter/XCharterMathMI.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1000.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/newtx/txsys.pfb>
+Output written on /home/tanguy/Bureau/ma-csel/csel-workspace/Rapport/rapport2/rapport.pdf (16 pages, 1231517 bytes).
 PDF statistics:
- 501 PDF objects out of 1000 (max. 8388607)
- 457 compressed objects within 5 object streams
- 295 named destinations out of 1000 (max. 500000)
- 123 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 686 PDF objects out of 1000 (max. 8388607)
+ 636 compressed objects within 7 object streams
+ 445 named destinations out of 1000 (max. 500000)
+ 99 words of extra memory for PDF output out of 10000 (max. 10000000)
 

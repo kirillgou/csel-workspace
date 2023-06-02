@@ -82,13 +82,7 @@
 \newpage
 
 
-\section{Objectif}
-
-This is my link: \footnote{\href{http://www.latex-tutorial.com}{http://www.latex-tutorial.com}}.
-
-\section{Programmation Système}
-
-\subsection{Système de fichier}\label{filesystem}
+\section{Système de fichier}\label{filesystem}
 L'objectif de cet exercice est de reprendre un code faisant clignoter une LED utilisant 100\% d'un coeur du processeur et de le modifier afin qu'il utilise le système de fichier virtuel pour contrôler la LED. Au démarrage, la LED clignote à une fréquence de 2Hz. Les boutons nous permettent d'augmenter, diminuer ou réinitialiser la fréquence de clignotement. Les changements de fréquence de la LED sont reportés avec $syslog$.\\
 Pour commencer, nous ouvrons les descripteurs de fichier des boutons d'une manière similaire à celle utilisée pour la LED avec quelques modifications. La fonction ci-dessous permet de configurer les GPIOs des boutons en entrée, avec un détecteur de flanc montant. Elle retourne le descripteur de fichier de la valeur du bouton.\\
 
@@ -264,8 +258,8 @@ Notre code fonctionne correctement selon les spécifications. Nous avons égalem
 Nous avons pu bien visualiser avec $htop$ que notre programme n'utilise plus 100\% du CPU si la fréquence n'est pas trop élevée. Quand la période diminuer à quelques nanoseconde, les évènements arrivent trop rapidement et nous pouvons observer la croissance de l'utilisation du CPU.\\
 Cet exercice était particulièrement intéressant, car il nous a permis d'utiliser le système de fichier virtuel de Linux pour contrôler nos périphériques. Nous avons également pu voir l'importance de la gestion des évènements pour la programmation système. La gestion des évènements en utilisant $epoll$ avec un multiplexage apporte une nouvelle esthétique au code que nous avons bien apprécié.
 
-\subsection{Multiprocessing et Ordonnanceur}\label{multiprocess}
-\subsubsection{Exercice 1 Processus et signaux}\label{MPEx1}
+\section{Multiprocessing et Ordonnanceur}\label{multiprocess}
+\subsection{Exercice 1 Processus et signaux}\label{MPEx1}
 Le but de cet exercice est de mettre en place une communication entre deux processus en utilisant un service Linux tel que socketpair.
 Le processus enfant envoie des messages au processus parent qui les afficher. Lorsque le process enfant envoie le message "exit" le programme se terminer.
 Il est aussi demand\'e de fixer l'affinité des processus afin que le thread enfant effectue ces t\^aches sur le CPU 1 et le thread parent sur le CPU 0.
@@ -397,7 +391,7 @@ Ce labo a été plus compliquer que nous le pr\'ec\'edent, car nous avons eu des
 Il serait mieux de regarder le nombre de bytes re\c{c}u, et de parser le message re\c{c}u dans diff\'erent string, en utilisant les z\'eros termineaux.
 
 
-\subsubsection{Exercice 2 CGroups Limitation memoire}\label{MPEx2}
+\subsection{Exercice 2 CGroups Limitation memoire}\label{MPEx2}
 % Exercice #2: Concevez une petite application permettant de valider la capacité des groupes de contrôle à limiter l’utili\'eation de la mémoire.
 Dans cet exercice, l'objectif est de montrer que les CGroups permettent de limiter l'utilisation de la m\'emoire d'un processus.
 Pour faire cela, nous avons créer un programme qui alloue de la m\'emoire par block de 2MB, et qui remplit cette m\'emoire avec des 0.
@@ -482,7 +476,7 @@ Nous avons réussi \`a faire effectuer l'exercice, mais \`a un certain moment la
 Il faudrait que nous regardions plus en d\'etail comment fonctionne les CGroups, et comment les utiliser, la structure et le nombre de fichiers pr\'esents dans le syst\`eme de fichier /sys/fs/cgroup/memory/ est assez impressionnant.
 Toutefois, il est bon de savoir qu'il est possible de limiter la m\'emoire d'un processus, et de voir comment cela fonctionne.
 
-\subsubsection{Exercice 3 CGroups Controle du CPU}\label{MPEx3}
+\subsection{Exercice 3 CGroups Controle du CPU}\label{MPEx3}
 % Afin de valider la capacité des groupes de contrôle de limiter l’utilisation des CPU, 
 % concevez une petite application composée au minimum de 2 processus utilisant le 100% des ressources du processeur.
 Dans cet exercice, l'objectif est de limiter l'utilisation du CPU par un processus.
@@ -618,7 +612,7 @@ Ce TP était tr\`es proche du pr\'ec\'edent, mais nous avons appris à g\'erer l
 \end{enumerate}
 
 
-\subsection{Outils d'analyse de performance pour Linux}
+\section{Outils d'analyse de performance pour Linux}
 Dans cette partie, nous allons nous familiariser avec l'outil perf de Linux. Cet outil permet de mesurer les performances d'un programme. Il est possible de mesurer le temps d'ex\'ecution d'un programme, le nombre de cycles d'horloge, le nombre d'instructions, le nombre de caches miss, etc.\\
 
 Tout d'abord, nous commen\c{c}ons par ajouter binutils dans buildroot :
@@ -813,13 +807,14 @@ En ex\'ecutant \`a nouveau la commande perf record, nous pouvons voir que les fo
 \item \textbf{Décrivez comment devrait-on procéder pour mesurer la latence et la gigue d’interruption, ceci aussi bien au niveau du noyau (kernel space) que de l’application (user space)}\\
 Dans le cas d'un syst\`eme embarqué avec une routine d'interruption assigné \`a une pin, nous pouvons envoyer un signal carré sur la pin d'interruption.
 Puis inverser l'\'etat d'une pin de sortie, dans la routine d'interruption.
-Ensuite \`a l'aide d'un oscilloscope, nous pouvons mesurer la latence et la gigue d'interruption. En effectuant des moyennes et en calculant l'\'ecart type.
+Ensuite \`a l'aide d'un oscilloscope, nous pouvons mesurer la latence et la gigue d'interruption. En effectuant des moyennes et en calculant l'\'ecart type.\\
 \end{enumerate}
 
+% Conclusion et resumer 
+Ce labo etait particulierement interessant, nous n'avions jamais pris le temps d'observer les prediction de branch, les cache miss, etc.
+Avant cela nous utilisions uniquement time, et les fonction de mesure de temps fournis en C afin de tester les performances de nos programmes.
+A l'avenir nous utiliserons perf stat et perf record afin de tester les performances de nos programmes.
 
-\section{Concluerion}
-
-blabla beaucoup blabla robot qui roule sur les gros 
 
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
