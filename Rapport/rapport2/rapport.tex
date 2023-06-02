@@ -255,7 +255,7 @@ void button_action(enum my_event ev, int wait_for_first_event){
 \end{lstlisting}
 
 Notre code fonctionne correctement selon les spécifications. Nous avons également ajouté un $syslog$\footnote{\href{https://www.gnu.org/software/libc/manual/html_node/Syslog-Example.html}{https://www.gnu.org/software/libc/manual/html\_node/Syslog-Example.html}} qui nous permet de voir les changements de fréquence de la LED.\\
-Nous avons pu bien visualiser avec $htop$ que notre programme n'utilise plus 100\% du CPU si la fréquence n'est pas trop élevée. Quand la période diminuer à quelques nanoseconde, les évènements arrivent trop rapidement et nous pouvons observer la croissance de l'utilisation du CPU.\\
+Nous avons pu bien visualiser avec $htop$ que notre programme n'utilise plus 100\% du CPU si la fréquence n'est pas trop élevée. Quand la période diminue à quelques nanosecondes, les évènements arrivent trop rapidement et nous pouvons observer la croissance de l'utilisation du CPU.\\
 Cet exercice était particulièrement intéressant, car il nous a permis d'utiliser le système de fichier virtuel de Linux pour contrôler nos périphériques. Nous avons également pu voir l'importance de la gestion des évènements pour la programmation système. La gestion des évènements en utilisant $epoll$ avec un multiplexage apporte une nouvelle esthétique au code que nous avons bien apprécié.
 
 \section{Multiprocessing et Ordonnanceur}\label{multiprocess}
@@ -317,7 +317,7 @@ La valeur de pid retourner par la fonction fork() permet de savoir si le process
 Ensuite il faut assigner l'affinité des processus, pour cela nous avons utiliser la fonction sched\_setaffinity() qui est appelée dans la fonction setAffinity() que nous avons cré\'ee.
 Pour terminer, il suffit\ de lancer la fonction correspondante au processus (enfant, ou parent).
 Et ne pas oublier d'effectuer une\ attente pour attendre que le processus enfant se termine,\ afin\ d'\'eviter les zombies.
-La fonction setAffinity que nous avons créer utilise sched\_setaffinity, voici le code : \\
+La fonction setAffinity que nous avons créée utilise sched\_setaffinity, voici le code : \\
 \begin{lstlisting}[style=CStyle, firstnumber=1]
 	int setAffinity(int core) {
 		// set thread affinity
@@ -379,19 +379,19 @@ void parent(int socket) {
 \end{minipage}
 Il faut tout de m\^eme faire attention \`a plusieurs choses, premi\`erement le parent peut recevoir deux messages en m\^eme temps avec la fonction read(), il faut donc faire attention à bien lire le message en entier.
 Il est possible de recevoir "message""exit", avec un z\'ero terminal entre les deux. Ce qui ferait que le programme ne s'arr\^eterait pas.
-Ensuite, la taille du buffer peut ne pas \^etre suffisante pour lire le message en entier, ce qui peut creer un buffer overflow.\\
+Ensuite, la taille du buffer peut ne pas \^etre suffisante pour lire le message en entier, ce qui peut créer un buffer overflow.\\
 
 % Synthese de ce qui as été appris/exercé
 Lors de ce TP, nous avons appris \`a utiliser les socketpairs afin de communiquer entre deux processus.
 Nous avons aussi appris \`a ignorer des signaux, mais il aurait aussi été possible de les rediriger vers une fonction dans le but d'effectuer une action.
-Gr\^ace\ \`a ce TP, nous avons appris \`a g\'erer un processus (création, affinité, communication, etc.). En utilisant les fonction fork(), schsed\_setaffinity(), socketpair(), etc...\\
+Gr\^ace\ \`a ce TP, nous avons appris \`a g\'erer un processus (création, affinité, communication, etc.). En utilisant les fonctions fork(), schsed\_setaffinity(), socketpair(), etc...\\
 % \lineeak
 
 Ce labo a été plus compliquer que nous le pr\'ec\'edent, car nous avons eu des difficultés pour la r\'eception du message "exit". La solution retenue est simple, mais pourrait poser des probl\`emes.
-Il serait mieux de regarder le nombre de bytes re\c{c}u, et de parser le message re\c{c}u dans diff\'erent string, en utilisant les z\'eros termineaux.
+Il serait mieux de regarder le nombre de bytes re\c{c}u, et de parser le message re\c{c}u dans diff\'erents strings, en utilisant les z\'eros terminaux.
 
 
-\subsection{Exercice 2 CGroups Limitation memoire}\label{MPEx2}
+\subsection{Exercice 2 CGroups Limitation mémoire}\label{MPEx2}
 % Exercice #2: Concevez une petite application permettant de valider la capacité des groupes de contrôle à limiter l’utili\'eation de la mémoire.
 Dans cet exercice, l'objectif est de montrer que les CGroups permettent de limiter l'utilisation de la m\'emoire d'un processus.
 Pour faire cela, nous avons créer un programme qui alloue de la m\'emoire par block de 2MB, et qui remplit cette m\'emoire avec des 0.
@@ -434,7 +434,7 @@ echo 20M > /sys/fs/cgroup/memory/mem/memory.limit_in_bytes
 ./ex2
 \end{lstlisting}
 Ce script monte un syst\`eme de fichier tmpfs, puis monte un groupe de contr\^ole dans ce syst\`eme de fichier.
-Ensuite, il cr\'ee un groupe de contr\^ole, et limite la m\'emoire de ce groupe a 20MB \`a tous les processus qui y sont liés.
+Ensuite, il cr\'ee un groupe de contr\^ole, et limite la m\'emoire de ce groupe à 20MB \`a tous les processus qui y sont liés.
 Enfin, il lance le programme qui alloue de la m\'emoire.
 
 \begin{figure}[H]
@@ -718,7 +718,7 @@ Les r\'esultats sont similaires aux deux r\'esultats pr\'ec\'edents. Il y a 9.6x
 \begin{enumerate}[label=\textbf{\alph*}]
 	\item \textbf{instructions :} le nombre d'instructions ex\'ecuté
 	\item \textbf{cache-misses :} le nombre de caches miss
-	\item \textbf{branch-misses :} le nombre de branch miss
+	\item \textbf{branch-misses :} le nombre de branche miss
 	\item \textbf{L1-dcache-load-misses :} le nombre de caches miss de niveau 1
 	\item \textbf{cpu-migrations :} le nombre de migrations de processus
 	\item \textbf{context-switches :} le nombre de changements de contexte
@@ -769,7 +769,7 @@ Voici les r\'esultats de perf stat : (les autres r\'esultats\ \ d'event\ sont\ s
 32788425s\ dans\ les\ deux\ ex\'ecutions9.      branch-misses             \#   33.17\% of all branches\\
 842261         branch-misses             \#    0.08\% of all branches\\
 
-Le fait que le tableau soit trié permet d'avoir de meilleure pr\'ediction de branchement, donc le pipeline est moins souvent cassée.
+Le fait que le tableau soit trié permet d'avoir de meilleure pr\'ediction de branchement, donc le pipeline est moins souvent cassé.
 \end{enumerate}
 
 
@@ -805,15 +805,15 @@ Le temps est \`a\ pr\'esent de 1.49s, contre 2 minutes et 18 secondes avant la m
 En ex\'ecutant \`a nouveau la commande perf record, nous pouvons voir que les fonctions memcmp et cfree, sont les plus utilisées.
 
 \item \textbf{Décrivez comment devrait-on procéder pour mesurer la latence et la gigue d’interruption, ceci aussi bien au niveau du noyau (kernel space) que de l’application (user space)}\\
-Dans le cas d'un syst\`eme embarqué avec une routine d'interruption assigné \`a une pin, nous pouvons envoyer un signal carré sur la pin d'interruption.
+Dans le cas d'un syst\`eme embarqué avec une routine d'interruption assignée \`a une pin, nous pouvons envoyer un signal carré sur la pin d'interruption.
 Puis inverser l'\'etat d'une pin de sortie, dans la routine d'interruption.
 Ensuite \`a l'aide d'un oscilloscope, nous pouvons mesurer la latence et la gigue d'interruption. En effectuant des moyennes et en calculant l'\'ecart type.\\
 \end{enumerate}
 
 % Conclusion et resumer 
-Ce labo etait particulierement interessant, nous n'avions jamais pris le temps d'observer les prediction de branch, les cache miss, etc.
-Avant cela nous utilisions uniquement time, et les fonction de mesure de temps fournis en C afin de tester les performances de nos programmes.
-A l'avenir nous utiliserons perf stat et perf record afin de tester les performances de nos programmes.
+Ce labo était particulièrement intéressant, nous n'avions jamais pris le temps d'observer les prédictions de branche, les caches miss, etc.
+Avant cela nous utilisions uniquement time, et les fonctions de mesure de temps fournis en C afin de tester les performances de nos programmes.
+À l'avenir nous utiliserons perf stat et perf record afin de tester les performances de nos programmes.
 
 
 %----------------------------------------------------------------------------------------
