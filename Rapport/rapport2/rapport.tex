@@ -556,7 +556,6 @@ $ ssh root@192.168.0.14
 $ echo $$ > /sys/fs/cgroup/cpuset/low/tasks
 \end{lstlisting}
 \textbf{Lancez ensuite votre application dans chacun des shells. Quel devrait être le bon comportement ? Pouvez-vous le vérifier ?}\\
-% //Note pas compirs pourquoi 2,3 puis 50/50..
 Le programme appartenant au cgroupe high devrait tourner sur le CPU 3, alors que le programme appartenant au groupe low devrait tourner sur le CPU 2.
 De plus comme un seul CPU est associé \`a 2 processus, le temps CPU devrait \^etre partagé entre les deux processus. La charge sera donc toujours de 100\% sur un CPU, mais partagés \`a 50\% entre les deux processus.
 Afin de v\'erifier cela, nous pouvons utiliser la commande htop, qui nous permet de voir l'utilisation des CPU.
@@ -720,8 +719,7 @@ Le temps passe de 41.7s à 5.8s et le nombre de caches miss de 407143880 à 4233
 \end{center}
 Les r\'esultats sont similaires aux deux r\'esultats pr\'ec\'edents. Il y a 9.6x moins\ de\ cache\ miss et le temps d'ex\'ecution est 7.2x plus rapide.
 
-% //note  eitem?
-\'eitem \textbf{Décrivez brièvement ce que sont les évènements suivants :}
+\textbf{Décrivez brièvement ce que sont les évènements suivants :}
 % add a sub-list to the question
 \begin{enumerate}[label=\textbf{\alph*}]
 	\item \textbf{instructions :} le nombre d'instructions ex\'ecuté
@@ -733,9 +731,7 @@ Les r\'esultats sont similaires aux deux r\'esultats pr\'ec\'edents. Il y a 9.6x
 \end{enumerate}
 
 \item \textbf{Lors de la présentation de l’outil perf, on a vu que celui-ci permettait de profiler une application avec très peu d’impacts sur les performances. En utilisant la commande time, mesurez le temps d’exécution de notre application ex1 avec et sans la commande perf stat}\\
-L'ex\'ecution de la commande perf stat a pris 5.477 secondes et l'ex\'ecution de la commande time a pris 5.07 secondes. Mais il faudrait effectuer plusieurs\
-% //note ? milieur de la phrase 
-lancements ps\ lancementsune moyenne plus pr\'ecise.
+L'ex\'ecution de la commande perf stat a pris 5.477 secondes et l'ex\'ecution de la commande time a pris 5.07 secondes. Mais il faudrait effectuer plus lancement afin d'obtenir une moyenne plus précise.
 Nous pouvons observer que le programme prend 0.4s de plus avec perf stat, ce qui est tr\`es peu, et donc nous pouvons dire que perf stat a très peu d'impact sur les performances.
 
 \end{enumerate}
