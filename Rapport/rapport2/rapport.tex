@@ -130,6 +130,7 @@ Ces descripteurs de fichier sont placés dans un tableau de structure que nous a
 
 Nous avons ensuite initialisé le timer\footnote{\href{https://man7.org/linux/man-pages/man2/timerfd_create.2.html}{https://man7.org/linux/man-pages/man2/timerfd\_create.2.html}}. 
 Ce timer nous permet de générer un évènement à interval régulier. Nous avons utilisé la fonction $timerfd\_settime()$ pour configurer le timer. Cette fonction prend en paramètre une structure qui contient le temps avant le premier évènement et le temps entre chaque évènement.
+\newpage
 \begin{lstlisting}[style=CStyle, caption=Initialisation du timer, firstnumber=1]{Name}
 int open_timer(){
 	int fd = timerfd_create(CLOCK_MONOTONIC, 0);
@@ -390,7 +391,7 @@ Gr\^ace\ \`a ce TP, nous avons appris \`a g\'erer un processus (création, affin
 Ce labo a été plus compliquer que nous le pr\'ec\'edent, car nous avons eu des difficultés pour la r\'eception du message "exit". La solution retenue est simple, mais pourrait poser des probl\`emes.
 Il serait mieux de regarder le nombre de bytes re\c{c}u, et de parser le message re\c{c}u dans diff\'erents strings, en utilisant les z\'eros terminaux.
 
-
+\newpage
 \subsection{Exercice 2 CGroups Limitation mémoire}\label{MPEx2}
 % Exercice #2: Concevez une petite application permettant de valider la capacité des groupes de contrôle à limiter l’utili\'eation de la mémoire.
 Dans cet exercice, l'objectif est de montrer que les CGroups permettent de limiter l'utilisation de la m\'emoire d'un processus.
@@ -516,8 +517,8 @@ Ce programme nous permet de simplement lancer 2 processus qui vont charger les C
 	\end{lstlisting}
 \end{minipage}
 
+\newpage
 Il reste \`a configurer les CGroups pour limiter l'utilisation du CPU par les processus. Pour faire cela, les lignes de commande nous ont été fournies.
-
 \begin{lstlisting}[language=bash, firstnumber=1]{Name}
 #!/bin/sh
 mkdir /sys/fs/cgroup/cpuset
@@ -583,7 +584,7 @@ echo 0 > /sys/fs/cgroup/cpuset/low/cpuset.mems
 	\label{fig:MPEx3HighLow4CPU}
 \end{figure}
 
-
+\newpage
 	\item \textbf{Sachant que l’attribut cpu.shares permet de répartir le temps CPU entre différents cgroups, comment devrait-on procéder pour lancer deux tâches distinctes sur le cœur 4 de notre processeur et attribuer 75\% du temps CPU à la première tâche et 25\% à la deuxième ?}\\
 
 Ici nous voulons faire tourner tous nos programmes sur le CPU 4, donc un peut \'ecrire :
@@ -677,6 +678,7 @@ Afin d'avoir un point de comparaison, nous avons lancé le programme de base ave
 \begin{lstlisting}[language=bash, firstnumber=1]{Name}
 $ perf stat -e cache-misses ./ex1
 \end{lstlisting}
+\newpage
 Et nous avons obtenu le r\'esultat suivant :
 \begin{figure}[H]
 	\centering
@@ -789,6 +791,7 @@ Un fichier report.data est généré, que nous analysons avec la commande suivan
 \begin{lstlisting}[language=bash, firstnumber=1]{Name}
 perf report --no-children --demangle
 \end{lstlisting}
+\newpage
 \item \textbf{Avec les instructions précédentes, déterminez quelle fonction de notre application fait (indirectement) appel à std::operator==<char>.}\\
 
 Le probl\`eme vient de cette fonction :
