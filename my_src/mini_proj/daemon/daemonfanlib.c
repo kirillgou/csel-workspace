@@ -42,7 +42,6 @@ static int g_led_fd = 0;
 static int g_mode = 0;
 static int g_freq = 0;
 static struct sockaddr_in g_address;
-static struct sockaddr_in g_clientaddress;
 static pthread_t g_thread_id;
 static my_context g_ctx[3];
 
@@ -56,16 +55,34 @@ static void catch_signal(int signal)
 static void *threadSocket(void *arg)
 {
     // TODO : ADD A SIGNAL TO STOP THE THREAD
-    int addresslen = sizeof(g_clientaddress);
+    int addresslen = sizeof(g_address);
     //listen on the socket
+    // Example of packet :
+    // set mode to 1 : "M1"
+    // set mode to 0 : "M0"
+    // set Freq to 1Hz : "F1"
+    // set Freq to 200 : "F200"
+    if((g_client_fd = accept(g_server_fd, (struct sockaddr*)&g_address, ((socklen_t*) &addresslen))) < 0) {
+        syslog(LOG_ERR, "accept");
+        exit(EXIT_FAILURE);
+    }
+    // TODO : UGLY
+    syslog(LOG_INFO, "threadSocket started\n");
     while(1) {
-        char buffer[1024] = {0};
-        int valread = read(g_client_fd, buffer, 1024);
+        char buffer[SOCKET_BUFFER_SIZE] = {0};
+        int valread = read(g_client_fd, buffer, SOCKET_BUFFER_SIZE);
         if (valread == 0) {
             syslog(LOG_INFO, "client disconnected\n");
             close(g_client_fd);
-            g_client_fd = accept(g_server_fd, (struct sockaddr*)&g_clientaddress, ((socklen_t*) &addresslen));
+            g_client_fd = accept(g_server_fd, (struct sockaddr*)&g_address, ((socklen_t*) &addresslen));
         } else {
+            if (buffer[0] == 'M') {
+                g_mode = buffer[1] - '0';
+                writeMode(g_mode);
+            } else if (buffer[0] == 'F') {
+                g_freq = atoi(&buffer[1]);
+                writeFreq(g_freq);
+            }
             syslog(LOG_INFO, "received: %s\n", buffer);
         }
     }
@@ -118,10 +135,12 @@ static void initSocket()
     int adddresslen = sizeof(g_address);
     
     // init a socket for communication with the application
+    syslog(LOG_INFO, "init socket\n");
     if ((g_server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         syslog(LOG_ERR, "socket creation failed");
         exit(EXIT_FAILURE);
     }
+    syslog(LOG_INFO, "socket created\n");
     if (setsockopt(g_server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt,
                    sizeof(opt))) {
         syslog(LOG_ERR, "setsockopt");
@@ -130,23 +149,21 @@ static void initSocket()
     g_address.sin_family = AF_INET;
     g_address.sin_addr.s_addr = INADDR_ANY;
     g_address.sin_port = htons(DAEMON_PORT);
+    syslog(LOG_INFO, "bind socket\n");
     if (bind(g_server_fd, (struct sockaddr*)&g_address, sizeof(g_address)) < 0) {
         syslog(LOG_ERR, "bind failed");
         exit(EXIT_FAILURE);
     }
+    syslog(LOG_INFO, "socket binded\n");
     if (listen(g_server_fd, 1) < 0) {
         syslog(LOG_ERR, "listen");
         exit(EXIT_FAILURE);
     }
 
-    if((g_client_fd = accept(g_server_fd, (struct sockaddr*)&g_clientaddress, ((socklen_t*) &adddresslen))) < 0) {
-        syslog(LOG_ERR, "accept");
-        exit(EXIT_FAILURE);
-    }
-
     // TODO : make a join on the thread
+    syslog(LOG_INFO, "running thread socket");
     pthread_create(&g_thread_id, NULL, threadSocket, NULL);
-    syslog(LOG_INFO, "socket initialized\n");
+    syslog(LOG_INFO, "socket initialized");
 }
 
 int open_button(const char *gpio_path, const char *gpio_num){
@@ -235,10 +252,12 @@ static void initScreen()
 
     ssd1306_set_position (0,3);
     ssd1306_puts("Temp: 35'C");
-    ssd1306_set_position (0,4);
-    ssd1306_puts("Freq: 1Hz");
+    writeFreq(2);
+    g_freq = 2;
     ssd1306_set_position (0,5);
     ssd1306_puts("Duty: 50%");
+    writeMode(0);
+    g_mode = 0;
     syslog(LOG_INFO, "screen initialized\n");
 }
 
@@ -248,9 +267,6 @@ static void daemonFunc()
     syslog(LOG_INFO, "daemon function\n");
     // start by initialising the ssd1306 display
     initScreen();
-
-    // init a socket for communication with the application
-    // initSocket();
 
     // init the buttons S1, S2 and S3
     initButtons();
@@ -280,7 +296,9 @@ static void daemonFunc()
     // init the leds
     initLeds();
 
-    
+    // init a socket for communication with the application
+    initSocket();
+
 
     while (1) {
         struct epoll_event event_arrived[3];
@@ -297,7 +315,7 @@ static void daemonFunc()
 
             switch (ctx->ev){
             case EV_BTN_1: // increase frequence
-            syslog(LOG_INFO, "button 1 pressed\n");
+                syslog(LOG_INFO, "button 1 pressed\n");
                 if(ctx->first_done == 0){
                     ctx->first_done = 1;
                     break;
@@ -307,11 +325,14 @@ static void daemonFunc()
             break;
             case EV_BTN_2: // decrease frequence
             syslog(LOG_INFO, "button 2 pressed\n");
-            if(ctx->first_done == 0){
+                if(ctx->first_done == 0){
                     ctx->first_done = 1;
                     break;
                 }
-                g_freq--;
+                if(g_freq > 0)
+                {
+                    g_freq--;
+                }
                 writeFreq(g_freq);
             break;
             case EV_BTN_3: // change auto/manual mode
@@ -394,7 +415,7 @@ void generateDaemon()
 
     // 9. option: open syslog for message logging
     openlog(NULL, LOG_NDELAY | LOG_PID, LOG_DAEMON);
-    syslog(LOG_INFO, "Daemon has started 7...");
+    syslog(LOG_INFO, "Daemon has started 8...");
 
     // // 10. option: get effective user and group id for appropriate's one
     // struct passwd* pwd = getpwnam("daemon");

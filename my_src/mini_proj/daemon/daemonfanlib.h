@@ -27,6 +27,8 @@
 #define MODULE_FILE_TEMP "/sys/class/fan_ctl/fan_ctl/temperature_mC"
 #define DAEMON_PORT 8080
 
+#define SOCKET_BUFFER_SIZE 8
+
 #define GPIO_EXPORT   "/sys/class/gpio/export"
 #define GPIO_UNEXPORT "/sys/class/gpio/unexport"
 
