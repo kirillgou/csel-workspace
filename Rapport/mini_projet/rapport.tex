@@ -1,0 +1,107 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% University/School Laboratory Report
+% LaTeX Template
+% Version 4.0 (March 21, 2022)
+%
+% This template originates from:
+% https://www.LaTeXTemplates.com
+%
+% Authors:
+% Vel (vel@latextemplates.com)
+% Linux and Unix Users Group at Virginia Tech Wiki
+%
+% License:
+% CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[
+	a4paper, % Paper size, specify a4paper (A4) or letterpaper (US letter)
+	10pt, % Default font size, specify 10pt, 11pt or 12pt
+]{CSUniSchoolLabReport}
+
+
+\addbibresource{sample.bib} % Bibliography file (located in the same folder as the template)
+
+%----------------------------------------------------------------------------------------
+%	REPORT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{MA-CSEL \\ Conception système Embarqué Linux } % Report title
+
+\author{Kirill \textsc{Goundiaev} \& Tanguy \textsc{Dietrich}} % Author name(s), add additional authors like: '\& James \textsc{Smith}'
+
+\fancyhead[RE,LO]{Kirill Goundiaev \& Tanguy Dietrich}
+\fancyhead[CE,CO]{\today}
+\fancyhead[LE,RO]{MA-CSEL}
+
+\fancyfoot[RE,LO]{MSE}
+\fancyfoot[CE,CO]{\thepage} % this dicard page number dont touch
+\fancyfoot[LE,RO]{HES-SO}
+\date{\today} % Date of the report
+
+
+% add image on the left top corner
+% Definition of \maketitle
+\makeatletter         
+\def\@maketitle{
+\raggedright
+% \includegraphics[width = 60mm]{Figures/MSE.png}\\[8ex]
+\includegraphics[width = 180mm]{Figures/ImageTitle.png}\\[8ex]
+\begin{center}{}
+{\Huge \@title }\\[4ex] 
+{\Large  \@author}\\[4ex] 
+\@date\\[8ex]
+% \includegraphics[width = 40mm]{Figures/HESSO.png}
+\end{center}}
+\makeatother
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\maketitle % Insert the title, author and date using the information specified above
+
+% add an image
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.35\linewidth]{EMbeddedLinuxLogo}}
+% \caption{Example image.}
+\label{fig:speciation}
+\end{figure}
+
+
+%  to make a guard page
+\newpage
+
+% generate the summary table
+\tableofcontents
+\newpage
+
+
+\section{Système de fichier}\label{filesystem}
+
+\section{Multiprocessing et Ordonnanceur}\label{multiprocess}
+\subsection{Exercice 1 Processus et signaux}\label{MPEx1}
+
+\subsection{Exercice 2 CGroups Limitation mémoire}\label{MPEx2}
+
+\subsection{Exercice 3 CGroups Controle du CPU}\label{MPEx3}
+
+\section{Outils d'analyse de performance pour Linux}
+
+
+
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\printbibliography % Output the bibliography
+
+%----------------------------------------------------------------------------------------
+
+\end{document}
