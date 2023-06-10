@@ -83,22 +83,123 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INTRO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}\label{Introduction}
-
+Le projet est composé de 2 parties : \\
+\begin{itemize}
+	\item Un module kernel qui permet de controler la frequence du processeur, et de changer le mode de fonctionnement du module kernel. Et il met a disposition les informations sur la temperature du CPU.
+	\item Un daemon qui permet d'afficher les informations sur l'ecran, et de controler le module kernel.
+\end{itemize}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MODULE KERNEL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Module Kernel}\label{ModuleKernel}
-
+TODO
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DAEMON %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Daemon}\label{Daemon}
+Un Daemon est un programme qui s'execute en arriere plan. 
+Son objectif sera de gerer l'affichage des donnée sur l'ecran, tel que la temperature, frequence, et le mode de fonctionnement du module kernel.
+Pour faire cela, il dispose de 2 interface de controle : \\
+\begin{itemize}
+	\item Les 3 bouton present sur la carte pour augmenter/diminuer la frequence, et changer le mode de fonctionnement.
+	\item un IPC (Inter Process Communication) pour communiquer avec le module kernel. Dans notre cas, nous avons choisi d'utiliser un socket.
+\end{itemize}
+
+% Creation du daemon
+La création du daemon se fait en plusieurs étapes : \\
+TODO WRITE ...
+Nous avons réutiliser le code fournis dans le cours comme point de départ pour la création du daemon. \\
 \subsection{IPC}\label{IPC}
+La communication entre un processus externe et le daemon se fait par un socket. 
+Ce qui permet de controller la carte depuis n'importe quel ordinateur connecté au même réseau. 
+L'initialisation du socket se fait dans la fonction \textit{void initSocket(int *mode, int *freq, pthread\_t *thread\_id, void* (*threadFunc)(void*))} qui est appelé dans la fonction \textit{main}.
+La fonction prend un pointeur vers le mode, la frequence, et l'id du thread, ainsi qu'un pointeur vers la fonction qui sera executé par le thread. Afin de traiter les donnée recu.
+Le socket est initialisé avec l'adresse IP de la carte, et le port 8080. \\
+
+Comme nous étions libre pour le choix du protocole de communication, nous avons choisi d'utiliser un protocole simple, qui permet de controller le mode et la frequence du module kernel.
+Le protocole est composé de 2 commandes : \\
+\begin{itemize}
+	\item M\textit{X} : Permet de choisir le mode de fonctionnement du module kernel. \textit{X} peut prendre 2 valeurs : 0 pour le mode manuel, et 1 pour le mode automatique.
+	\item F\textit{XXX} : Permet de changer la frequence de clignotement de la LED. \textit{XXX} est un nombre entre 0 et 999.
+\end{itemize}
+
+Par exemple envoyer "M0", puis "F5" aura pour effet de mettre le mode manuel, et de mettre la frequence de clignotement à 5 Hz.
+
+Voici le code du thread qui vas s'occuper de traiter les donnée recu par le socket : \\
+\begin{lstlisting}[language=C]
+void *threadSocket(void *arg)
+{
+	int client_fd = 0;
+	char buffer[SOCKET_BUFFER_SIZE] = {0};
+	socketParamThread *param = (socketParamThread*) arg;
+	int addresslen = sizeof(param->address);
+	//listen on the socket
+	if((client_fd = accept(param->server_fd, (struct sockaddr*)&param->address, ((socklen_t*) &addresslen))) < 0) {
+		syslog(LOG_ERR, "accept");
+		exit(EXIT_FAILURE);
+	}
+	syslog(LOG_INFO, "threadSocket started\n");
+	while(1) {
+		int valread = read(client_fd, buffer, SOCKET_BUFFER_SIZE);
+		if (valread == 0) {
+			syslog(LOG_INFO, "client disconnected\n");
+			close(client_fd);
+			client_fd = accept(param->server_fd, (struct sockaddr*)&param->address, ((socklen_t*) &addresslen));
+		} else {
+			if (buffer[0] == 'M') {
+				*param->mode = buffer[1] - '0';
+				writeMode(*param->mode);
+				if (*param->mode == 0) {
+					writeFreq(*param->freq);
+				}
+			} else if (buffer[0] == 'F') {
+				*param->freq = atoi(&buffer[1]);
+				writeFreq(*param->freq);
+			}
+			syslog(LOG_INFO, "received: %s\n", buffer);
+		}
+	}
+	free(param);
+	return NULL;
+}
+\end{lstlisting}
+Le thread vas attendre qu'un client se connecte, puis il vas lire les donnée recu, et les traiter.
+Si le client se déconnecte, le thread vas attendre qu'un nouveau client se connecte.
+Le code ne permet pas à plusieur client de se connecter en même temps, mais il serais possible de le faire en créant un thread qui attend des connection, et qui créer un nouveau thread pour chaque client qui se connecte. \\
+
 
 \subsection{Control des LED}\label{Leds}
+L'acces a la LED par le daemon se fait par l'interface sysfs.
+Pour cela, nous avons créer une fonction qui permet d'initialiser les LED, et une fonction qui permet de choisir l'etat de la led rouge.
+Le prototype de la fonction d'écriture est : \textit{void writeLed(int value)}.
+Voici le code d'initialisation des LED : \\
+\begin{lstlisting}[language=C]
+void initLeds()
+{
+	int f = open(GPIO_UNEXPORT, O_WRONLY);
+	write(f, LED, strlen(LED));
+	close(f);
+
+	// export pin to sysfs
+	f = open(GPIO_EXPORT, O_WRONLY);
+	write(f, LED, strlen(LED));
+	close(f);
+
+	// config pin
+	f = open(GPIO_LED "/direction", O_WRONLY);
+	write(f, "out", 3);
+	close(f);
+	g_led_fd = open(GPIO_LED "/value", O_WRONLY);
+	syslog(LOG_INFO, "leds initialized\n");
+}
+\end{lstlisting}
+Le code commence par exporter les LED, puis il configure les LED en sortie, en écrivant "out" dans le fichier direction.
+Enfin, il ouvre le fichier value, qui permet d'écrire dans la LED. Le descripteur de fichier est stocké dans la variable globale \textit{g\_led\_fd}. \\
 
 \subsection{Bouton}\label{Bouton}
-
+Pour réaliser cette partie du TP, nous avons en partie réutilisé le code que nous avions écrit pour le rendu precedent.
+Notre code utilise les epoll pour gérer les interruptions des boutons.
+L'attente des evenement sur les bouton s'effectue dans le main avec la fonction \textit{epoll\_wait()}.
 
 \section{Conclusion}
 

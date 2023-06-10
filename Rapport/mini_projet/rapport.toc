@@ -3,6 +3,6 @@
 \contentsline {section}{\numberline {2}Module Kernel}{3}{section.2}%
 \contentsline {section}{\numberline {3}Daemon}{3}{section.3}%
 \contentsline {subsection}{\numberline {3.1}IPC}{3}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Control des LED}{3}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Bouton}{3}{subsection.3.3}%
-\contentsline {section}{\numberline {4}Conclusion}{3}{section.4}%
+\contentsline {subsection}{\numberline {3.2}Control des LED}{4}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Bouton}{5}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Conclusion}{5}{section.4}%
