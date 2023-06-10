@@ -11,19 +11,20 @@ void catch_signal(int signal)
     // g_signal_catched++;
 }
 
+// Example of packet :
+// set mode to 1 : "M1"
+// set mode to 0 : "M0"
+// set Freq to 1Hz : "F1"
+// set Freq to 200 : "F200"
 static void *threadSocket(void *arg)
 {
     int client_fd = 0;
+    char buffer[SOCKET_BUFFER_SIZE] = {0};
     // get the parameters
     socketParamThread *param = (socketParamThread*) arg;
     // TODO : ADD A SIGNAL TO STOP THE THREAD
     int addresslen = sizeof(param->address);
     //listen on the socket
-    // Example of packet :
-    // set mode to 1 : "M1"
-    // set mode to 0 : "M0"
-    // set Freq to 1Hz : "F1"
-    // set Freq to 200 : "F200"
     if((client_fd = accept(param->server_fd, (struct sockaddr*)&param->address, ((socklen_t*) &addresslen))) < 0) {
         syslog(LOG_ERR, "accept");
         exit(EXIT_FAILURE);
@@ -31,7 +32,6 @@ static void *threadSocket(void *arg)
 
     syslog(LOG_INFO, "threadSocket started\n");
     while(1) {
-        char buffer[SOCKET_BUFFER_SIZE] = {0};
         int valread = read(client_fd, buffer, SOCKET_BUFFER_SIZE);
         if (valread == 0) {
             syslog(LOG_INFO, "client disconnected\n");
@@ -41,6 +41,9 @@ static void *threadSocket(void *arg)
             if (buffer[0] == 'M') {
                 *param->mode = buffer[1] - '0';
                 writeMode(*param->mode);
+                if (*param->mode == 0) {
+                    writeFreq(*param->freq);
+                }
             } else if (buffer[0] == 'F') {
                 *param->freq = atoi(&buffer[1]);
                 writeFreq(*param->freq);
@@ -121,6 +124,10 @@ int main()
                 mode = !mode;
                 //TODO : write it to the the module
                 writeMode(mode);
+                if(mode == 0){
+                    // need to rewrite the actual freq
+                    writeFreq(freq);
+                }
                 writeLed(LED_ON);
                 break;
             

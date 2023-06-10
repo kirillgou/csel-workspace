@@ -10,6 +10,48 @@ Description :
 static my_context g_ctx[3];
 static int g_led_fd = 0;
 
+void writeMode(int mode)
+{
+    char str[32] = {0};
+    int fd = open(MODULE_FILE_MODE, O_WRONLY);
+    if (fd < 0) {
+        syslog(LOG_ERR, "open %s failed\n", MODULE_FILE_MODE);
+        exit(EXIT_FAILURE);
+    }
+    // write mode in the file
+    char buffer[2] = {0};
+    sprintf(buffer, "%d", mode);
+    write(fd, buffer, strlen(buffer));
+    close(fd);
+    // add a line for the mode
+    sprintf(str, "Mode: %d", mode);
+    ssd1306_set_position (0,6);
+    ssd1306_puts(str);
+}
+
+void writeFreq(int freq)
+{
+    char str[32] = {0};
+    int fd = open(MODULE_FILE_SPEED, O_WRONLY);
+    if (fd < 0) {
+        syslog(LOG_ERR, "open %s failed\n", MODULE_FILE_SPEED);
+        exit(EXIT_FAILURE);
+    }
+    // write mode in the file
+    char buffer[2] = {0};
+    sprintf(buffer, "%d", freq);
+    // TODO : check if write is ok
+    write(fd, buffer, strlen(buffer));
+    close(fd);
+    // then write new data to the screen
+    // 
+    // ssd1306_set_position (0 ,4);
+    // ssd1306_puts("                ");// clear the line, to avoid the Hz to be displayed at the wrong place whennumber of digits change
+    sprintf(str, "Freq: %03d Hz", freq);
+    ssd1306_set_position (0 ,4);
+    ssd1306_puts(str);
+}
+
 int open_button(const char *gpio_path, const char *gpio_num)
 {
     // printf("open button %s %s\n", gpio_num, gpio_path);
@@ -132,42 +174,3 @@ void initScreen(int mode, int freq)
     syslog(LOG_INFO, "screen initialized\n");
 }
 
-void writeMode(int mode)
-{
-    char str[32] = {0};
-    // open MODULE_FILE_MODE in write mode
-    int fd = open(MODULE_FILE_MODE, O_WRONLY);
-    if (fd < 0) {
-        syslog(LOG_ERR, "open %s failed\n", MODULE_FILE_MODE);
-        exit(EXIT_FAILURE);
-    }
-    // write mode in the file
-    char buffer[2] = {0};
-    sprintf(buffer, "%d", mode);
-    write(fd, buffer, strlen(buffer));
-    close(fd);
-    // add a line for the mode
-    sprintf(str, "Mode: %d", mode);
-    ssd1306_set_position (0,6);
-    ssd1306_puts(str);
-}
-
-void writeFreq(int freq)
-{
-    char str[32] = {0};
-    int fd = open(MODULE_FILE_MODE, O_WRONLY);
-    if (fd < 0) {
-        syslog(LOG_ERR, "open %s failed\n", MODULE_FILE_MODE);
-        exit(EXIT_FAILURE);
-    }
-    // write mode in the file
-    char buffer[2] = {0};
-    sprintf(buffer, "%d", freq);
-    // TODO : check if write is ok
-    write(fd, buffer, strlen(buffer));
-    close(fd);
-    // then write new data to the screen
-    sprintf(str, "Freq: %dHz", freq);
-    ssd1306_set_position (0 ,4);
-    ssd1306_puts(str);
-}
