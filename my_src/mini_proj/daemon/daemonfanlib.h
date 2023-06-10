@@ -29,18 +29,6 @@
 
 #define SOCKET_BUFFER_SIZE 8
 
-#define GPIO_EXPORT   "/sys/class/gpio/export"
-#define GPIO_UNEXPORT "/sys/class/gpio/unexport"
-
-#define GPIO_LED      "/sys/class/gpio/gpio10"
-#define LED           "10"
-
-#define GPIO_BTN_1   "/sys/class/gpio/gpio0"
-#define BTN_1        "0"
-#define GPIO_BTN_2   "/sys/class/gpio/gpio2"
-#define BTN_2        "2"
-#define GPIO_BTN_3   "/sys/class/gpio/gpio3"
-#define BTN_3        "3"
 
 enum my_event {
     EV_BTN_1 = 0,
@@ -54,7 +42,15 @@ typedef struct {
     int first_done;
 } my_context;
 
-void generateDaemon();
+typedef struct _socketParamThread {
+    int *mode;
+    int *freq;
+    int server_fd;
+    struct sockaddr_in address;
+} socketParamThread;
+
+void generateDaemon(void (*catchSignalFunc)(int));
+void initSocket(int *mode, int *freq, pthread_t *thread_id, void* (*threadFunc)(void*));
 
 
 #endif
