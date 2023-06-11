@@ -7,12 +7,11 @@ Description :
 #include <stdio.h>
 #include <stdlib.h>
 
-static my_context g_ctx[3];
+static my_context g_ctx[NUM_EVENTS];
 static int g_led_fd = 0;
 
 void writeMode(int mode)
 {
-    char str[32] = {0};
     int fd = open(MODULE_FILE_MODE, O_WRONLY);
     if (fd < 0) {
         syslog(LOG_ERR, "open %s failed\n", MODULE_FILE_MODE);
@@ -24,14 +23,53 @@ void writeMode(int mode)
     write(fd, buffer, strlen(buffer));
     close(fd);
     // add a line for the mode
+    writeLCDMode(mode);
+}
+
+void writeLCDMode(int mode)
+{
+    char str[32] = {0};
     sprintf(str, "Mode: %d", mode);
     ssd1306_set_position (0,6);
     ssd1306_puts(str);
 }
 
-void writeFreq(int freq)
+void writeLCDFreq(int freq)
 {
     char str[32] = {0};
+    sprintf(str, "Freq: %03d Hz", freq);
+    ssd1306_set_position (0 ,4);
+    ssd1306_puts(str);
+}
+
+int readMode()
+{
+    int fd = open(MODULE_FILE_MODE, O_RDONLY);
+    if (fd < 0) {
+        syslog(LOG_ERR, "open %s failed\n", MODULE_FILE_MODE);
+        exit(EXIT_FAILURE);
+    }
+    char buffer[2] = {0};
+    read(fd, buffer, 2);
+    close(fd);
+    return atoi(buffer);
+}
+
+int readFreq()
+{
+    int fd = open(MODULE_FILE_SPEED, O_RDONLY);
+    if (fd < 0) {
+        syslog(LOG_ERR, "open %s failed\n", MODULE_FILE_SPEED);
+        exit(EXIT_FAILURE);
+    }
+    char buffer[4] = {0};
+    read(fd, buffer, 4);
+    close(fd);
+    return atoi(buffer);
+}
+
+void writeFreq(int freq)
+{
     int fd = open(MODULE_FILE_SPEED, O_WRONLY);
     if (fd < 0) {
         syslog(LOG_ERR, "open %s failed\n", MODULE_FILE_SPEED);
@@ -43,18 +81,11 @@ void writeFreq(int freq)
     // TODO : check if write is ok
     write(fd, buffer, strlen(buffer));
     close(fd);
-    // then write new data to the screen
-    // 
-    // ssd1306_set_position (0 ,4);
-    // ssd1306_puts("                ");// clear the line, to avoid the Hz to be displayed at the wrong place whennumber of digits change
-    sprintf(str, "Freq: %03d Hz", freq);
-    ssd1306_set_position (0 ,4);
-    ssd1306_puts(str);
+    writeLCDFreq(freq);
 }
 
 int open_button(const char *gpio_path, const char *gpio_num)
 {
-    // printf("open button %s %s\n", gpio_num, gpio_path);
     // unexport pin out of sysfs (reinitialization)
     int f = open(GPIO_UNEXPORT, O_WRONLY);
     write(f, gpio_num, strlen(gpio_num));
@@ -94,7 +125,33 @@ int open_button(const char *gpio_path, const char *gpio_num)
     return f;
 }
 
-int initButtons()
+int open_timer()
+{ // see https://man7.org/linux/man-pages/man2/timerfd_create.2.html
+    int fd = timerfd_create(CLOCK_MONOTONIC, 0);
+    if (fd == -1) {
+        syslog(LOG_ERR, "error timerfd_create: %s\n", strerror(errno));
+        return 1;
+    }
+    // default 2Hz => 500ms
+    struct itimerspec new_value;
+    // interval for periodic timer
+    new_value.it_interval.tv_sec = 0;
+    new_value.it_interval.tv_nsec = DEFAULT_PERIOD; // 500ms = 500'000'000ns 
+
+    // initial expiration (timer before first expiration)
+    new_value.it_value.tv_sec = 10;
+    // new_value.it_value.tv_sec = 1;
+    new_value.it_value.tv_nsec = 0; // 500ms = 500'000'000ns
+    // new_value.it_value.tv_nsec = DEFAULT_PERIOD; // 500ms = 500'000'000ns
+    if (timerfd_settime(fd, 0, &new_value, NULL) == -1) {
+        syslog(LOG_ERR, "error timerfd_settime: %s\n", strerror(errno));
+        return 1;
+    }
+    syslog(LOG_INFO, "frequence: %.5fHz", S_IN_NSEC / (double)DEFAULT_PERIOD);
+    return fd;
+}
+
+int initButtonsAndTimer()
 {
     g_ctx[EV_BTN_1].ev = EV_BTN_1;
     g_ctx[EV_BTN_2].ev = EV_BTN_2;
@@ -102,7 +159,16 @@ int initButtons()
     g_ctx[EV_BTN_1].fd = open_button(GPIO_BTN_1, BTN_1);
     g_ctx[EV_BTN_2].fd = open_button(GPIO_BTN_2, BTN_2);
     g_ctx[EV_BTN_3].fd = open_button(GPIO_BTN_3, BTN_3);
+
+    g_ctx[EV_TIMER].ev = EV_TIMER;
+    g_ctx[EV_TIMER].fd = open_timer();
+
     int epfd = epoll_create1(0);// parametre size isn't used anymore by Linux
+    // creation contexte epoll
+    if (epfd == -1) {
+        syslog(LOG_ERR, "epoll_create1");
+        exit(EXIT_FAILURE);
+    }
 
     for(uint32_t i = 0; i < 3; i++){
         g_ctx[i].first_done = 0;
@@ -112,17 +178,21 @@ int initButtons()
             .data.ptr = &g_ctx[i]
         };
         if (epoll_ctl(epfd, EPOLL_CTL_ADD, g_ctx[i].fd, &event) == -1) {
-            printf("error epoll_ctl: %s\n", strerror(errno));
+            syslog(LOG_ERR, "error epoll_ctl: %s\n", strerror(errno));
             // return 1;
             exit(EXIT_FAILURE);
         }
     }
-    // creation contexte epoll
-    if (epfd == -1) {
-        // printf("error epoll_create1: %s\n", strerror(errno));
-        syslog(LOG_ERR, "epoll_create1");
-        exit(EXIT_FAILURE);
+
+    struct epoll_event event_timer = {
+        .events = EPOLLIN, // read available
+        .data.ptr = &g_ctx[EV_TIMER]
+    };
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, g_ctx[EV_TIMER].fd, &event_timer) == -1) {
+        syslog(LOG_ERR, "error epoll_ctl_timer: %s\n", strerror(errno));
+        return 1;
     }
+    
     syslog(LOG_INFO, "buttons initialized\n");
     return epfd;
 }

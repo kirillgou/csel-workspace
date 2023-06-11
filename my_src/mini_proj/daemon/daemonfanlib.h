@@ -29,19 +29,6 @@
 
 #define SOCKET_BUFFER_SIZE 8
 
-
-enum my_event {
-    EV_BTN_1 = 0,
-    EV_BTN_2 = 1,
-    EV_BTN_3 = 2
-};
-
-typedef struct {
-    int fd;
-    enum my_event ev;
-    int first_done;
-} my_context;
-
 typedef struct _socketParamThread {
     int *mode;
     int *freq;

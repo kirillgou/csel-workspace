@@ -68,7 +68,7 @@ int main()
     initScreen(mode, freq);
 
     // init the buttons S1, S2 and S3
-    epfd = initButtons();
+    epfd = initButtonsAndTimer();
 
     // init the leds
     initLeds();
@@ -77,9 +77,9 @@ int main()
     initSocket(&mode, &freq, &thread_id, threadSocket);
 
     while (1) {
-        struct epoll_event event_arrived[3];
+        struct epoll_event event_arrived[NUM_EVENTS];
         syslog(LOG_INFO, "waiting for event epoll\n");
-        int nr = epoll_wait(epfd, event_arrived, 3, -1);
+        int nr = epoll_wait(epfd, event_arrived, NUM_EVENTS, -1);
         syslog(LOG_INFO, "event arrived\n");
         if (nr == -1) {
             // printf("error epoll_wait: %s\n", strerror(errno));
@@ -129,6 +129,25 @@ int main()
                     writeFreq(freq);
                 }
                 writeLed(LED_ON);
+                break;
+            case EV_TIMER:
+                // read the actual mode
+                syslog(LOG_INFO, "timer expired\n");
+                mode = readMode(); // maybe and IPC changed it ?
+                if(mode == 1) // if in auto mode
+                {
+                    syslog(LOG_INFO, "auto mode\n");
+                    writeLCDMode(mode);
+                    // read the actual freq
+                    freq = readFreq();
+                    // show it on the screen
+                    writeLCDFreq(freq);
+                }
+                else // if in manual mode
+                {
+                    syslog(LOG_INFO, "manual mode\n");
+                    writeLCDMode(mode);
+                }
                 break;
             
             default:

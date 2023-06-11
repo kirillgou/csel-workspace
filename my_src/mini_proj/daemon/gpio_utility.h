@@ -18,6 +18,8 @@
 #include <signal.h>
 #include <errno.h>
 #include <sys/epoll.h>
+#include <sys/timerfd.h> // timerfd_create, timerfd_settime
+
 
 #include "ssd1306.h"
 #include "daemonfanlib.h"
@@ -31,8 +33,8 @@
 #define GPIO_LED_ROUGE      "/sys/class/gpio/gpio362"
 #define LED_ROUGE           "362"
 
-#define LED_ON  0
-#define LED_OFF 1
+#define LED_ON  1
+#define LED_OFF 0
 
 // LED USED ON THE PROGRAM
 #define GPIO_LED GPIO_LED_ROUGE
@@ -45,12 +47,35 @@
 #define GPIO_BTN_3   "/sys/class/gpio/gpio3"
 #define BTN_3        "3"
 
-int initButtons();
+#define S_IN_NSEC 1000000000 // 1s = 1'000'000'000ns
+#define DEFAULT_PERIOD 200000000 // 200ms = 200'000'000ns
+
+#define NUM_EVENTS 4
+
+enum my_event {
+    EV_BTN_1 = 0,
+    EV_BTN_2 = 1,
+    EV_BTN_3 = 2,
+    EV_TIMER = 3
+};
+
+typedef struct {
+    int fd;
+    enum my_event ev;
+    int first_done;
+} my_context;
+
+int initButtonsAndTimer();
+int open_timer();
 void initLeds();
 void writeLed(int value);
 void initScreen(int mode, int freq);
 void writeMode(int mode);
+int readMode();
 void writeFreq(int freq);
+int readFreq();
+void writeLCDMode(int mode);
+void writeLCDFreq(int freq);
 int open_button(const char *gpio_path, const char *gpio_num);
 
 #endif
