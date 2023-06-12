@@ -98,7 +98,7 @@ int main()
                     break;
                 }
                 freq++;
-                writeFreq(freq);
+                writeFreq(freq); // will fail if in auto mode
                 writeLed(LED_ON);
             break;
             case EV_BTN_2: // decrease frequence
@@ -111,7 +111,7 @@ int main()
                 {
                     freq--;
                 }
-                writeFreq(freq);
+                writeFreq(freq); // will fail if in auto mode
                 writeLed(LED_ON);
             break;
             case EV_BTN_3: // change auto/manual mode
@@ -134,6 +134,7 @@ int main()
                 // read the actual mode
                 syslog(LOG_INFO, "timer expired\n");
                 mode = readMode(); // maybe and IPC changed it ?
+                updateTempCPU();
                 if(mode == 1) // if in auto mode
                 {
                     syslog(LOG_INFO, "auto mode\n");

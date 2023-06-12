@@ -55,6 +55,30 @@ int readMode()
     return atoi(buffer);
 }
 
+float readTempCPU()
+{
+    // data are in format 37204 -> 37.204°C
+    int fd = open(MODULE_FILE_TEMP, O_RDONLY);
+    if (fd < 0) {
+        syslog(LOG_ERR, "open %s failed\n", MODULE_FILE_TEMP);
+        exit(EXIT_FAILURE);
+    }
+    char buffer[5] = {0};
+    read(fd, buffer, 5);
+    close(fd);
+    return atof(buffer) / 1000;
+}
+
+void updateTempCPU()
+{
+    float temp = readTempCPU();
+    char str[32] = {0};
+    ssd1306_set_position (0,3);
+    // ssd1306_puts("Temp: 35'C");
+    sprintf(str, "Temp: %2.1f'C", temp);
+    ssd1306_puts(str);
+}
+
 int readFreq()
 {
     int fd = open(MODULE_FILE_SPEED, O_RDONLY);
@@ -71,6 +95,7 @@ int readFreq()
 void writeFreq(int freq)
 {
     int fd = open(MODULE_FILE_SPEED, O_WRONLY);
+    int ret = 0;
     if (fd < 0) {
         syslog(LOG_ERR, "open %s failed\n", MODULE_FILE_SPEED);
         exit(EXIT_FAILURE);
@@ -78,10 +103,13 @@ void writeFreq(int freq)
     // write mode in the file
     char buffer[2] = {0};
     sprintf(buffer, "%d", freq);
-    // TODO : check if write is ok
-    write(fd, buffer, strlen(buffer));
+    ret = write(fd, buffer, strlen(buffer));
     close(fd);
-    writeLCDFreq(freq);
+    if (ret >= 0) {
+        writeLCDFreq(freq);
+    }
+    
+    // return ret;
 }
 
 int open_button(const char *gpio_path, const char *gpio_num)

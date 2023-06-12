@@ -74,6 +74,8 @@ void writeMode(int mode);
 int readMode();
 void writeFreq(int freq);
 int readFreq();
+float readTempCPU();
+void updateTempCPU();
 void writeLCDMode(int mode);
 void writeLCDFreq(int freq);
 int open_button(const char *gpio_path, const char *gpio_num);
