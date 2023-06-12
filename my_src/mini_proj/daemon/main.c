@@ -61,8 +61,8 @@ int main()
     generateDaemon(catch_signal);
     // now we are in the daemon
     pthread_t thread_id;
-    int freq = 0;
-    int mode = 0;
+    int freq = 10; // start at 10Hz
+    int mode = 0; // start in manual mode
     int epfd = 0;
     // start by initialising the ssd1306 display
     initScreen(mode, freq);
@@ -75,6 +75,10 @@ int main()
 
     // init a socket for communication with the application
     initSocket(&mode, &freq, &thread_id, threadSocket);
+
+    updateTempCPU();
+    writeMode(mode);
+    writeFreq(freq);
 
     while (1) {
         struct epoll_event event_arrived[NUM_EVENTS];
