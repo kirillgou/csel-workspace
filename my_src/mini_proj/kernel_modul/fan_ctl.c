@@ -152,11 +152,15 @@ ssize_t show_frequency_Hz(struct device *dev, struct device_attribute *attr, cha
 
 ssize_t store_frequency_Hz(struct device *dev, struct device_attribute *attr, const char *buf, size_t count){
     int frequency_Hz, last_f;
-    pr_debug("Pilotes Fan_ctl: store_frequency_Hz called\n");
+    if(my_device_attribute.auto_config){
+        // pr_info("Pilotes Fan_ctl: auto_config is enabled, frequency_Hz can't be changed\n");
+        return -1;
+    }
+    // pr_debug("Pilotes Fan_ctl: store_frequency_Hz called\n");
     last_f = my_device_attribute.frequency_Hz;
     sscanf(buf, "%d", &frequency_Hz);
     if(frequency_Hz < 0){
-        pr_info("Pilotes Fan_ctl: frequency_Hz must be positive\n");
+        // pr_info("Pilotes Fan_ctl: frequency_Hz must be positive\n");
         return -1;
     }
     my_device_attribute.frequency_Hz = frequency_Hz;
@@ -182,6 +186,26 @@ ssize_t store_auto_config(struct device *dev, struct device_attribute *attr, con
     my_device_attribute.auto_config = auto_config ? 1 : 0;
     return count;
 }
+
+//polling function
+// static ssize_t store(struct kobject *kobj, struct attribute *attr, 
+//                      const char *buf, size_t len) { 
+//     struct d_attr *da = container_of(attr, struct d_attr, attr); 
+ 
+//     sscanf(buf, "%d", &da->value); 
+//     printk("sysfs_foo store %s = %d\n", a->attr.name, a->value); 
+ 
+//     if (strcmp(a->attr.name, "foo") == 0){ 
+//         foo.value = a->value; 
+//         sysfs_notify(mykobj, NULL, "foo"); 
+//     } 
+//     else if(strcmp(a->attr.name, "bar") == 0){ 
+//         bar.value = a->value; 
+//         sysfs_notify(mykobj, NULL, "bar"); 
+//     } 
+//     return sizeof(int); 
+// } 
+
 ssize_t show_temperature_mC(struct device *dev, struct device_attribute *attr, char *buf){
     pr_debug("Pilotes Fan_ctl: show_temperature_mC called\n");
     sprintf(buf, "%d\n", my_device_attribute.temperature_mC);
