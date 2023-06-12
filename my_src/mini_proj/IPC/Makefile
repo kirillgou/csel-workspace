@@ -1,5 +1,4 @@
-EXEC=daemonfan
-DTB = mydt.dtb
+EXEC=ipc_daemon_controller
 SRCS=$(wildcard *.c)
 
 target=nano
@@ -22,7 +21,7 @@ OBJS= $(addprefix $(OBJDIR)/, $(SRCS:.c=.o))
 $(OBJDIR)/%o: %c
 	$(CC) $(CFLAGS) $< -o $@
 
-all: $(OBJDIR)/ $(EXEC) dtb
+all: $(OBJDIR)/ $(EXEC)
 	echo $(EXEC)
 	echo $(SRCS)
 
@@ -33,7 +32,7 @@ $(OBJDIR)/:
 	mkdir -p $(OBJDIR)
 
 clean:
-	rm -Rf $(OBJDIR) $(EXEC) $(EXEC)_s .obj *.dtb *~
+	rm -Rf $(OBJDIR) $(EXEC) $(EXEC)_s .obj *~
 
 clean_all: clean
 
@@ -44,15 +43,7 @@ CPU      := arm64
 KDIR     := /buildroot/output/build/linux-$(KVER)/
 PWD := $(shell pwd)
 
-INCL+=-I. -I$(KDIR)/include -I$(KDIR)/arch/arm64/boot/dts/
-DTS = $(DTB:.dtb=.dts)
-
-dtb: $(DTB)
-$(DTB) : $(DTS)
-	ln -s $(KDIR)/arch/arm/boot/dts arm
-	-cpp $(INCL) -E -P -x assembler-with-cpp $(DTS) | dtc -I dts -O dtb -o $(DTB) -
-	rm arm
 
 -include $(OBJS:.o=.d)
 
-.PHONY: all clean clean_all dtb
+.PHONY: all clean clean_all

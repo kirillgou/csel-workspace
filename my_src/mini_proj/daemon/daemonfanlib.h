@@ -14,11 +14,30 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <signal.h>
+#include <errno.h>
+#include <sys/epoll.h>
 
+#include "ssd1306.h"
+
+
+#define MODULE_FILE_MODE "/sys/class/fan_ctl/fan_ctl/auto_config"
+#define MODULE_FILE_SPEED "/sys/class/fan_ctl/fan_ctl/frequency_Hz"
+#define MODULE_FILE_TEMP "/sys/class/fan_ctl/fan_ctl/temperature_mC"
 #define DAEMON_PORT 8080
 
-static void fork_process();
-static void catch_signal(int signal);
+#define SOCKET_BUFFER_SIZE 8
+
+typedef struct _socketParamThread {
+    int *mode;
+    int *freq;
+    int server_fd;
+    struct sockaddr_in address;
+} socketParamThread;
+
+void generateDaemon(void (*catchSignalFunc)(int));
+void initSocket(int *mode, int *freq, pthread_t *thread_id, void* (*threadFunc)(void*));
 
 
 #endif
