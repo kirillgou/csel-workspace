@@ -9,6 +9,7 @@ Description :
 
 static my_context g_ctx[NUM_EVENTS];
 static int g_led_fd = 0;
+pthread_mutex_t g_mutex_lcd;
 
 void writeMode(int mode)
 {
@@ -30,16 +31,20 @@ void writeLCDMode(int mode)
 {
     char str[32] = {0};
     sprintf(str, "Mode: %d", mode);
+    pthread_mutex_lock(&g_mutex_lcd);
     ssd1306_set_position (0,6);
     ssd1306_puts(str);
+    pthread_mutex_unlock(&g_mutex_lcd);
 }
 
 void writeLCDFreq(int freq)
 {
     char str[32] = {0};
     sprintf(str, "Freq: %03d Hz", freq);
+    pthread_mutex_lock(&g_mutex_lcd);
     ssd1306_set_position (0 ,4);
     ssd1306_puts(str);
+    pthread_mutex_unlock(&g_mutex_lcd);
 }
 
 int readMode()
@@ -73,10 +78,11 @@ void updateTempCPU()
 {
     float temp = readTempCPU();
     char str[32] = {0};
-    ssd1306_set_position (0,3);
-    // ssd1306_puts("Temp: 35'C");
     sprintf(str, "Temp: %2.1f'C", temp);
+    pthread_mutex_lock(&g_mutex_lcd);
+    ssd1306_set_position (0,3);
     ssd1306_puts(str);
+    pthread_mutex_unlock(&g_mutex_lcd);
 }
 
 int readFreq()
@@ -254,8 +260,16 @@ void writeLed(int value)
 
 void initScreen(int mode, int freq)
 {
+    syslog(LOG_INFO, "initializing screen\n");
     ssd1306_init();
 
+    // init the mutex
+    syslog(LOG_INFO, "initializing mutex\n");
+    pthread_mutex_init(&g_mutex_lcd, NULL);
+
+    syslog(LOG_INFO, "getting mutex screen\n");
+    pthread_mutex_lock(&g_mutex_lcd);
+    syslog(LOG_INFO, "writing on screen\n");
     ssd1306_set_position (0,0);
     ssd1306_puts("CSEL1a - SP.07");
     ssd1306_set_position (0,1);
@@ -268,6 +282,7 @@ void initScreen(int mode, int freq)
     writeFreq(freq);
     ssd1306_set_position (0,5);
     ssd1306_puts("Duty: 50%");
+    pthread_mutex_unlock(&g_mutex_lcd);
     writeMode(mode);
     syslog(LOG_INFO, "screen initialized\n");
 }
