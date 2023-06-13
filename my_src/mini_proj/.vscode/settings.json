@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "ssd1306.h": "c",
+        "in.h": "c",
+        "string.h": "c",
+        "gpio_utility.h": "c",
+        "signal.h": "c",
+        "daemonfanlib.h": "c"
+    }
+}

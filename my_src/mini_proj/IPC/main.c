@@ -7,7 +7,7 @@ int main()
     // set mode to manual
     send_mode(0);
     // set freq to 100Hz
-    send_freq(100);
+    send_freq(20);
     usleep(1000000); // wait 1s
     // set freq to 2Hz
     send_freq(2);

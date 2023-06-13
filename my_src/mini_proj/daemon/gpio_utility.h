@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <sys/epoll.h>
 #include <sys/timerfd.h> // timerfd_create, timerfd_settime
+#include <pthread.h>
 
 
 #include "ssd1306.h"
