@@ -221,10 +221,20 @@ Pour faire cela, il dispose de 2 interface de controle : \\
 	\item un IPC (Inter Process Communication) pour communiquer avec le module kernel. Dans notre cas, nous avons choisi d'utiliser un socket.
 \end{itemize}
 
-% Creation du daemon
-La création du daemon se fait en plusieurs étapes : \\
-TODO WRITE ...
 Nous avons réutiliser le code fournis dans le cours comme point de départ pour la création du daemon. \\
+
+Nous avons repartie le code de notre programme dans differentes librairies afin de le rendre plus lisible, voici les fichier qui le compose, et leux contenue : \\
+\begin{itemize}
+	\item \textit{main.c}\\
+	Ce fichier contien le main de notre programme, il initialise le daemon et contient le thread de reception des message du socket.
+	\item \textit{daemonfanlib.c/h}\\
+	Cette librairie contient les fonction necessaire a l'initialisation du socket et de la creation du daemon. Le constante qui indique le port du socket.
+	\item \textit{gpio\_utility.c/h}\\
+	Cette librairies permet d'acceder au GPIO de la carte, ainsi qu'au information fournis par le module kernel. le header contient divers constante qui permettent de definir les GPIO utilisé.
+	\item \textit{ssd1306.c/h}\\
+	Cette librairies fournis les fonction utiles à l'utilisation de l'écran. Cette librairies nous à été fournis dans le cours.
+
+\end{itemize}
 \subsection{IPC}\label{IPC}
 La communication entre un processus externe et le daemon se fait par un socket. 
 Ce qui permet de controller la carte depuis n'importe quel ordinateur connecté au même réseau. 
@@ -243,10 +253,11 @@ Par exemple envoyer "M0", puis "F5" aura pour effet de mettre le mode manuel, et
 
 Voici le code du thread qui vas s'occuper de traiter les donnée recu par le socket : \\
 \begin{lstlisting}[style=CStyle]
-void *threadSocket(void *arg)
+static void *threadSocket(void *arg)
 {
 	int client_fd = 0;
 	char buffer[SOCKET_BUFFER_SIZE] = {0};
+	// get the parameters
 	socketParamThread *param = (socketParamThread*) arg;
 	int addresslen = sizeof(param->address);
 	//listen on the socket
@@ -254,6 +265,7 @@ void *threadSocket(void *arg)
 		syslog(LOG_ERR, "accept");
 		exit(EXIT_FAILURE);
 	}
+
 	syslog(LOG_INFO, "threadSocket started\n");
 	while(1) {
 		int valread = read(client_fd, buffer, SOCKET_BUFFER_SIZE);
@@ -311,15 +323,92 @@ void initLeds()
 \end{lstlisting}
 Le code commence par exporter les LED, puis il configure les LED en sortie, en écrivant "out" dans le fichier direction.
 Enfin, il ouvre le fichier value, qui permet d'écrire dans la LED. Le descripteur de fichier est stocké dans la variable globale \textit{g\_led\_fd}. \\
+Pour finir un simple appel a la fonction \textit{void writeLed(int value)} permet de changer l'etat de la LED rouge.
+
 
 \subsection{Bouton}\label{Bouton}
 Pour réaliser cette partie du TP, nous avons en partie réutilisé le code que nous avions écrit pour le rendu precedent.
 Notre code utilise les epoll pour gérer les interruptions des boutons.
+afin de rendre le code main plus lisible, nous avons écrit une fonction \textit{int initButtonsAndTimer()} qui permet d'initialiser les boutons, et un timer pour etre utiliser avec les epoll.
+Cette fonction fais appel au fonction epoll\_create1(), epoll\_ctl(), et timerfd\_create() pour créer les epoll et le timer.
+puis elle retourne un descripteur de fichier qui permet de lire les evenement sur les boutons, et le timer.
+\begin{lstlisting}[style=CStyle]
+// init the buttons S1, S2 and S3, and the timer
+epfd = initButtonsAndTimer();
+\end{lstlisting}
 L'attente des evenement sur les bouton s'effectue dans le main avec la fonction \textit{epoll\_wait()}.
+Voici un extrait du code main, qui permet de lire les evenement sur les boutons : \\
+\begin{lstlisting}[style=CStyle]
+while (1) {
+	struct epoll_event event_arrived[NUM_EVENTS];
+	syslog(LOG_INFO, "waiting for event epoll\n");
+	writeLed(LED_OFF);
+	int nr = epoll_wait(epfd, event_arrived, NUM_EVENTS, -1);
+	syslog(LOG_INFO, "event arrived\n");
+	if (nr == -1) {
+		// printf("error epoll_wait: %s\n", strerror(errno));
+		syslog(LOG_ERR, "epoll_wait");
+		exit(EXIT_FAILURE);
+	}
+	for(int i = 0; i < nr; i++){
+		my_context *ctx = event_arrived[i].data.ptr;
+
+		switch (ctx->ev){
+		case EV_BTN_1: // increase frequence
+			syslog(LOG_INFO, "button 1 pressed\n");
+			if(ctx->first_done == 0){
+				ctx->first_done = 1;
+				break;
+			}
+			freq++;
+			writeFreq(freq); // will fail if in auto mode
+			writeLed(LED_ON);
+		break;
+		// ...
+\end{lstlisting}
+
+Dans le epoll, nous avons aussi ajouté le timer, qui permet de raffraichir l'affichage de la temperature, et de la frequence en mode automatique.
+Le timer est initialisé avec une periode de 200ms, il est possible de le modifier dans le fichier gpio\_utility.h, en modifiant la constante \textit{DEFAULT\_PERIOD}.
+Voici un extrait de la gestion de l'evevement timer : \\
+\begin{lstlisting}[style=CStyle]
+case EV_TIMER:
+// read the actual mode
+syslog(LOG_INFO, "timer expired\n");
+updateTempCPU();
+if(mode == 1) // if in auto mode
+{
+	// read the actual freq
+	freq = readFreq();
+	// show it on the screen
+	writeLCDFreq(freq); 
+}
+else // if in manual mode
+{
+	// syslog(LOG_INFO, "manual mode\n");
+}
+break;
+\end{lstlisting}
+
+\subsection{Concurence}
+Comme notre programme est multithreadé (thread socket et thread main), il est possible d'avoir des problèmes de concurence. Pour eviter cela nous avons ajouter un mutex ces les commande envoyé au LCD.
+Les variable de mode et de frequence sont aussi partagé, et peuvent etre modifié par le thread socket, et par le main. mais dans ce cas, les risques sont assez faible, il faudrait qu'un requette soit envoyé au moment au quelqun écrit sur le socket.
+Exemple de protection dans la fonction \textit{void writeLCDFreq(int freq)} : \\
+\begin{lstlisting}[style=CStyle]
+void writeLCDFreq(int freq)
+{
+    char str[32] = {0};
+    sprintf(str, "Freq: %03d Hz", freq);
+    pthread_mutex_lock(&g_mutex_lcd);
+    ssd1306_set_position (0 ,4);
+    ssd1306_puts(str);
+    pthread_mutex_unlock(&g_mutex_lcd);
+}
+\end{lstlisting}
+Sans cela deux thread essayait d'écrire en meme temps sur le LCD, et le texte n'était pas affiché correctement.
 
 \section{Conclusion}
 
-
+VROOM VROOM ...
 
 
 %----------------------------------------------------------------------------------------

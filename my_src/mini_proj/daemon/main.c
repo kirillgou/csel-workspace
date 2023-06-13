@@ -68,14 +68,19 @@ int main()
     initScreen(mode, freq);
 
     // init the buttons S1, S2 and S3
+    syslog(LOG_INFO, "init button and timer\n");
     epfd = initButtonsAndTimer();
 
+
     // init the leds
+    syslog(LOG_INFO, "init leds\n");
     initLeds();
 
     // init a socket for communication with the application
+    syslog(LOG_INFO, "init socket\n");
     initSocket(&mode, &freq, &thread_id, threadSocket);
 
+    syslog(LOG_INFO, "init done\n");
     updateTempCPU();
     writeMode(mode);
     writeFreq(freq);
@@ -83,6 +88,7 @@ int main()
     while (1) {
         struct epoll_event event_arrived[NUM_EVENTS];
         syslog(LOG_INFO, "waiting for event epoll\n");
+        writeLed(LED_OFF);
         int nr = epoll_wait(epfd, event_arrived, NUM_EVENTS, -1);
         syslog(LOG_INFO, "event arrived\n");
         if (nr == -1) {
@@ -90,7 +96,6 @@ int main()
             syslog(LOG_ERR, "epoll_wait");
             exit(EXIT_FAILURE);
         }
-        writeLed(LED_OFF);
         for(int i = 0; i < nr; i++){
             my_context *ctx = event_arrived[i].data.ptr;
 
@@ -126,7 +131,6 @@ int main()
                 }
                 // button_action(ctx->ev, 0);
                 mode = !mode;
-                //TODO : write it to the the module
                 writeMode(mode);
                 if(mode == 0){
                     // need to rewrite the actual freq
@@ -137,12 +141,9 @@ int main()
             case EV_TIMER:
                 // read the actual mode
                 syslog(LOG_INFO, "timer expired\n");
-                mode = readMode(); // maybe and IPC changed it ?
                 updateTempCPU();
                 if(mode == 1) // if in auto mode
                 {
-                    syslog(LOG_INFO, "auto mode\n");
-                    writeLCDMode(mode);
                     // read the actual freq
                     freq = readFreq();
                     // show it on the screen
@@ -150,8 +151,8 @@ int main()
                 }
                 else // if in manual mode
                 {
-                    syslog(LOG_INFO, "manual mode\n");
-                    writeLCDMode(mode);
+                    // syslog(LOG_INFO, "manual mode\n");
+                    // writeLCDMode(mode);
                 }
                 break;
             
