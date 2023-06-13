@@ -141,7 +141,6 @@ int main()
             case EV_TIMER:
                 // read the actual mode
                 syslog(LOG_INFO, "timer expired\n");
-                mode = readMode(); // maybe and IPC changed it ?
                 updateTempCPU();
                 if(mode == 1) // if in auto mode
                 {

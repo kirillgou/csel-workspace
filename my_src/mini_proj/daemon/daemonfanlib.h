@@ -21,10 +21,6 @@
 
 #include "ssd1306.h"
 
-
-#define MODULE_FILE_MODE "/sys/class/fan_ctl/fan_ctl/auto_config"
-#define MODULE_FILE_SPEED "/sys/class/fan_ctl/fan_ctl/frequency_Hz"
-#define MODULE_FILE_TEMP "/sys/class/fan_ctl/fan_ctl/temperature_mC"
 #define DAEMON_PORT 8080
 
 #define SOCKET_BUFFER_SIZE 8
