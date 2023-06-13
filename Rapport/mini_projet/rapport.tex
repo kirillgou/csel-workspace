@@ -258,7 +258,6 @@ Voici un extrait de la gestion de l'evevement timer : \\
 case EV_TIMER:
 // read the actual mode
 syslog(LOG_INFO, "timer expired\n");
-mode = readMode(); 
 updateTempCPU();
 if(mode == 1) // if in auto mode
 {
@@ -279,13 +278,21 @@ Comme notre programme est multithreadé (thread socket et thread main), il est p
 Les variable de mode et de frequence sont aussi partagé, et peuvent etre modifié par le thread socket, et par le main. mais dans ce cas, les risques sont assez faible, il faudrait qu'un requette soit envoyé au moment au quelqun écrit sur le socket.
 Exemple de protection dans la fonction \textit{void writeLCDFreq(int freq)} : \\
 \begin{lstlisting}[style=CStyle]
-	
-
+void writeLCDFreq(int freq)
+{
+    char str[32] = {0};
+    sprintf(str, "Freq: %03d Hz", freq);
+    pthread_mutex_lock(&g_mutex_lcd);
+    ssd1306_set_position (0 ,4);
+    ssd1306_puts(str);
+    pthread_mutex_unlock(&g_mutex_lcd);
+}
 \end{lstlisting}
+Sans cela deux thread essayait d'écrire en meme temps sur le LCD, et le texte n'était pas affiché correctement.
 
 \section{Conclusion}
 
-
+VROOM VROOM ...
 
 
 %----------------------------------------------------------------------------------------
