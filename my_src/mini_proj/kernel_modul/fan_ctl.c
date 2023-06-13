@@ -187,25 +187,6 @@ ssize_t store_auto_config(struct device *dev, struct device_attribute *attr, con
     return count;
 }
 
-//polling function
-// static ssize_t store(struct kobject *kobj, struct attribute *attr, 
-//                      const char *buf, size_t len) { 
-//     struct d_attr *da = container_of(attr, struct d_attr, attr); 
- 
-//     sscanf(buf, "%d", &da->value); 
-//     printk("sysfs_foo store %s = %d\n", a->attr.name, a->value); 
- 
-//     if (strcmp(a->attr.name, "foo") == 0){ 
-//         foo.value = a->value; 
-//         sysfs_notify(mykobj, NULL, "foo"); 
-//     } 
-//     else if(strcmp(a->attr.name, "bar") == 0){ 
-//         bar.value = a->value; 
-//         sysfs_notify(mykobj, NULL, "bar"); 
-//     } 
-//     return sizeof(int); 
-// } 
-
 ssize_t show_temperature_mC(struct device *dev, struct device_attribute *attr, char *buf){
     pr_debug("Pilotes Fan_ctl: show_temperature_mC called\n");
     sprintf(buf, "%d\n", my_device_attribute.temperature_mC);

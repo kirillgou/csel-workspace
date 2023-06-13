@@ -92,8 +92,124 @@ Le projet est composé de 2 parties : \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MODULE KERNEL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Module Kernel}\label{ModuleKernel}
-TODO
+Ce module kernel a pour but de gérer le refroidissement de notre système embarqué, qui est simulé par le clignotement d'une LED. Le module propose deux modes de fonctionnement :
+\begin{itemize}
+	\item Manuel : L'utilisateur peut choisir la fréquence de clignotement de la LED.
+	\item Automatique : La fréquence de clignotement de la LED est calculée en fonction de la température du microprocesseur.
+\end{itemize}
 
+Le module met à disposition une interface de contrôle à travers $sysfs$ permettant de modifier le mode de fonctionnement, la fréquence de la Modulation de largeur d'impulsion (PWM) et de lire la température du microprocesseur. \\
+
+Toute la communication avec le module se fait à travers les attribus de la class. Nous en mettons trois à disposition :
+\begin{itemize}
+	\item $auto\_config$ : Permet de lire et modifier le mode de fonctionnement du module. Il peut prendre deux valeurs : $0$ pour le mode manuel et $1$ pour le mode automatique.
+	\item $frequency\_Hz$ : Permet de lire et modifier la fréquence en Hz du PWM si le mode manuel est activé. La valeur $0$ permette d'arrêter le PWM et tout autre valeur positive fixe la fréquence du PWM, 
+	\item $temperature\_mC$ : Permet de lire la température du microprocesseur en millidegré celsius.
+\end{itemize}
+
+La mise en place des attributs se fait de la manière suivante :
+\begin{lstlisting}[style=CStyle]
+DEVICE_ATTR(frequency_Hz, 0664, show_frequency_Hz, store_frequency_Hz);
+DEVICE_ATTR(auto_config, 0664, show_auto_config, store_auto_config);
+DEVICE_ATTR(temperature_mC, 0444, show_temperature_mC, NULL);
+
+static int __init my_module_init(void){
+	/* ... */
+	device_create_file(my_device, &dev_attr_frequency_Hz);
+	device_create_file(my_device, &dev_attr_auto_config);
+	device_create_file(my_device, &dev_attr_temperature_mC);
+	/* ... */
+}
+\end{lstlisting}
+
+Dans le code ci-dessus, les fonction $show\_*()$ et $store\_*()$ sont des fonctions qui permettent de lire et modifier les attributs. Elles sont appelées automatiquement par le système d'exploitation lorsqu'un utilisateur lit ou modifie un attribut. Elles sont définies selon le modèle suivant :
+
+\begin{lstlisting}[style=CStyle]
+ssize_t store_attr(struct device *dev, struct device_attribute *attr, const char *buf, size_t count){
+	int new_value;
+	sscanf(buf, "%d", &new_value);
+	my_device_attribute.value = new_value;
+	return count;
+}
+
+ssize_t show_attr(struct device *dev, struct device_attribute *attr, char *buf){
+	sprintf(buf, "%d\n", my_device_attribute.value);
+	return strlen(buf);
+}
+\end{lstlisting}
+
+Etant donné que ces attributs permettent de contrôler le module, une logique supplémentaire est intégré dans les fonctions ci-dessus, afin de contrôler la cohérence des valeurs. Par exemple, la fréquence ne peut pas être modifié si le module est en mode auto ou être négative. \\
+
+Le module utlise deux timers indépendants pour gérer le clignotement de la LED et la lecture de la température. Les deux timers sont périodiques, le premier est configuré avec la fréquence donnée par l'attribut et le second avec une période de 500 milisecondes. \\
+Pour les configurer, nous utilisons une structure $timer\_list$ qui contient les informations nécessaires à la gestion du timer. Nous utilisons la fonction $setup\_timer()$ pour initialiser la structure avec la callback voulue et la fonction $mod\_timer()$ pour démarrer le timer. Ce timer a comme unité de temps les $jiffies$ qui est une unité de temps définie par le système d'exploitation et représente le temps entre deux ticks d'horloge successives. Voici l'example de configuration du timer de température :
+\begin{lstlisting}[style=CStyle]
+static struct timer_list timer_temprature;
+
+void run_timer(struct timer_list *timer, unsigned long period_us){
+	/* ... */
+	mod_timer(timer, jiffies + usecs_to_jiffies(period_us));
+}
+
+void timer_temprature_callback(struct timer_list *timer){
+	/* ... */
+	// run timer again
+	run_timer(&timer_fan, my_device_attribute.period_us_d2);		
+}
+
+static int __init my_module_init(void){
+	/* ... */
+    timer_setup(&timer_temprature, timer_temprature_callback, 0);
+    run_timer(&timer_temprature, TEMP_PERIOD_US);
+	/* ... */
+}
+\end{lstlisting}
+
+Les callbacks des timers nous permettent de mettre à jour la temperature avec laquelle nous recalculons la nouvelle frequence du PWM et de créer un signal PWM avec un duty cycle de 50\% et la fréquence voulue. \\
+Nos deux callbacks sont les suivantes :
+\begin{lstlisting}[style=CStyle]
+void timer_temprature_callback(struct timer_list *timer){
+	struct thermal_zone_device *tzd;
+	int temperature, ret, last_f;
+	run_timer(&timer_temprature, TEMP_PERIOD_US);
+
+	tzd = thermal_zone_get_zone_by_name("cpu-thermal");
+	ret = thermal_zone_get_temp(tzd, &temperature);
+	if(ret){
+		pr_err("Pilotes Fan_ctl: Error in thermal_zone_get_temp\n");
+		return;
+	}
+	my_device_attribute.temperature_mC = temperature;
+	if(my_device_attribute.auto_config){
+		last_f = my_device_attribute.frequency_Hz;
+		if(temperature < TEMP_THR_1){
+			my_device_attribute.frequency_Hz = TEMP_FRQ_1;
+		}else if(temperature < TEMP_THR_2){
+			my_device_attribute.frequency_Hz = TEMP_FRQ_2;
+		}else if(temperature < TEMP_THR_3){
+			my_device_attribute.frequency_Hz = TEMP_FRQ_3;
+		}else{
+			my_device_attribute.frequency_Hz = TEMP_FRQ_4;
+		}
+		my_device_attribute.period_us_d2 = S_IN_US / (2 * my_device_attribute.frequency_Hz);
+		if(last_f == 0){
+			run_timer(&timer_fan, my_device_attribute.period_us_d2);
+		}
+	}
+}
+
+void timer_fan_callback(struct timer_list *timer){
+	static int state = 0;
+	if(my_device_attribute.period_us_d2 == 0){
+		state = 0;
+	}else{
+		run_timer(&timer_fan, my_device_attribute.period_us_d2);
+		state = (state + 1) % 2;
+	}
+	gpio_set_value(GPIO_FAN, state);
+}
+\end{lstlisting}
+
+La fonction $thermal\_zone\_get\_zone\_by\_name()$ permet de récupérer la zone thermique du CPU. La fonction $thermal\_zone\_get\_temp()$ permet de récupérer la température de la zone thermique, que nous stockons dans l'attribut $temperature\_mC$. \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DAEMON %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Daemon}\label{Daemon}
@@ -126,7 +242,7 @@ Le protocole est composé de 2 commandes : \\
 Par exemple envoyer "M0", puis "F5" aura pour effet de mettre le mode manuel, et de mettre la frequence de clignotement à 5 Hz.
 
 Voici le code du thread qui vas s'occuper de traiter les donnée recu par le socket : \\
-\begin{lstlisting}[language=C]
+\begin{lstlisting}[style=CStyle]
 void *threadSocket(void *arg)
 {
 	int client_fd = 0;
@@ -173,7 +289,7 @@ L'acces a la LED par le daemon se fait par l'interface sysfs.
 Pour cela, nous avons créer une fonction qui permet d'initialiser les LED, et une fonction qui permet de choisir l'etat de la led rouge.
 Le prototype de la fonction d'écriture est : \textit{void writeLed(int value)}.
 Voici le code d'initialisation des LED : \\
-\begin{lstlisting}[language=C]
+\begin{lstlisting}[style=CStyle]
 void initLeds()
 {
 	int f = open(GPIO_UNEXPORT, O_WRONLY);
