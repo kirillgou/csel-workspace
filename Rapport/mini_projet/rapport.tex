@@ -73,6 +73,12 @@
 \label{fig:speciation}
 \end{figure}
 
+\begin{figure}[H] % Example image
+	\center{\includegraphics[width=0.35\linewidth]{demo}}
+	% \caption{Example image.}
+	\label{fig:speciation}
+\end{figure}
+
 
 %  to make a guard page
 \newpage
@@ -450,6 +456,7 @@ void writeLCDFreq(int freq)
 Sans cette protection, deux threads essayaient d'écrire en même temps sur le LCD, et le texte n'était pas affiché correctement.
 
 \section{Conclusion}
+
 Notre programme fonctionne correctement, le rafraichissement de la température est bien effectué et la fréquence est actualisé en mode automatique.
 Le contrôle de la fréquence en mode manuel fonctionne correctement. Nous affichons également une ligne supplémentaire pour indiquer le mode actuel.
 Il est possible de contrôler notre démon avec un socket client sur le réseau pour changer le mode et la fréquence. Ce qui peut être une fonctionnalité intéressante ou un problème de sécurité. Nous pouvons mettre une règle dans le pare-feu, pour n'autoriser que certaines adresses IP à se connecter au socket.
