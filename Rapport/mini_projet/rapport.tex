@@ -89,7 +89,7 @@ Le but de ce projet est de concevoir un contrôleur de refroidissement pour un s
 Notre projet est composé de 2 parties : \\
 \begin{itemize}
 	\item Un module kernel qui permet de contrôler la fréquence de la LED, de changer le mode de fonctionnement du module kernel, ainsi que de récupérer les informations sur la température du CPU.
-	\item Un daemon qui permet d'afficher les informations sur l'écran, et de contrôler le module kernel.
+	\item Un démon qui permet d'afficher les informations sur l'écran, et de contrôler le module kernel.
 \end{itemize}
 
 
@@ -125,7 +125,7 @@ static int __init my_module_init(void){
 }
 \end{lstlisting}
 
-Dans le code ci-dessus, les fonction $show\_*()$ et $store\_*()$ sont des fonctions qui permettent de lire et modifier les attributs. Elles sont appelées automatiquement par le système d'exploitation lorsqu'un utilisateur lit ou modifie un attribut. Elles sont définies selon le modèle suivant :
+Dans le code ci-dessus, les fonctions $show\_*()$ et $store\_*()$ sont des fonctions qui permettent de lire et modifier les attributs. Elles sont appelées automatiquement par le système d'exploitation lorsqu'un utilisateur lit ou modifie un attribut. Elles sont définies selon le modèle suivant :
 
 \begin{lstlisting}[style=CStyle]
 ssize_t store_attr(struct device *dev, struct device_attribute *attr, const char *buf, size_t count){
@@ -135,16 +135,17 @@ ssize_t store_attr(struct device *dev, struct device_attribute *attr, const char
 	return count;
 }
 
+
 ssize_t show_attr(struct device *dev, struct device_attribute *attr, char *buf){
 	sprintf(buf, "%d\n", my_device_attribute.value);
 	return strlen(buf);
 }
 \end{lstlisting}
 
-Etant donné que ces attributs permettent de contrôler le module, une logique supplémentaire est intégré dans les fonctions ci-dessus, afin de contrôler la cohérence des valeurs. Par exemple, la fréquence ne peut pas être modifié si le module est en mode auto ou être négative. \\
+Étant donné que ces attributs permettent de contrôler le module, une logique supplémentaire est intégrée dans les fonctions ci-dessus, afin de contrôler la cohérence des valeurs. Par exemple, la fréquence ne peut pas être modifiée si le module est en mode auto ou être négative. \\
 
-Le module utlise deux timers indépendants pour gérer le clignotement de la LED et la lecture de la température. Les deux timers sont périodiques, le premier est configuré avec la fréquence donnée par l'attribut et le second avec une période de 500 milisecondes. \\
-Pour les configurer, nous utilisons une structure $timer\_list$ qui contient les informations nécessaires à la gestion du timer. Nous utilisons la fonction $setup\_timer()$ pour initialiser la structure avec la callback voulue et la fonction $mod\_timer()$ pour démarrer le timer. Ce timer a comme unité de temps les $jiffies$ qui est une unité de temps définie par le système d'exploitation et représente le temps entre deux ticks d'horloge successives. Voici l'example de configuration du timer de température :
+Le module utilise deux timers indépendants pour gérer le clignotement de la LED et la lecture de la température. Les deux timers sont périodiques, le premier est configuré avec la fréquence donnée par l'attribut et le second avec une période de 500 millisecondes. \\
+Pour les configurer, nous utilisons une structure $timer\_list$ qui contient les informations nécessaires à la gestion du timer. Nous utilisons la fonction $setup\_timer()$ pour initialiser la structure avec la callback voulue et la fonction $mod\_timer()$ pour démarrer le timer. Ce timer a comme unité de temps les $jiffies$ qui est une unité de temps définie par le système d'exploitation et représente le temps entre deux ticks d'horloge successives. Voici l'exemple de configuration du timer de température :
 \begin{lstlisting}[style=CStyle]
 static struct timer_list timer_temprature;
 
@@ -199,7 +200,6 @@ void timer_temprature_callback(struct timer_list *timer){
 		}
 	}
 }
-
 void timer_fan_callback(struct timer_list *timer){
 	static int state = 0;
 	if(my_device_attribute.period_us_d2 == 0){
@@ -215,46 +215,46 @@ void timer_fan_callback(struct timer_list *timer){
 La fonction $thermal\_zone\_get\_zone\_by\_name()$ permet de récupérer la zone thermique du CPU. La fonction $thermal\_zone\_get\_temp()$ permet de récupérer la température de la zone thermique, que nous stockons dans l'attribut $temperature\_mC$. \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DAEMON %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Daemon}\label{Daemon}
-Un Daemon est un programme qui s'execute en arriere plan. 
-Son objectif sera de gerer l'affichage des donnée sur l'écran, tel que la température, fréquence, et le mode de fonctionnement du module kernel.
-Pour faire cela, il dispose de 2 interface de controle : \\
+\section{Démon (Daemon)}\label{Démon (Daemon)}
+Un démon (daemon) est un programme qui s'exécute en arrière plan. 
+Son objectif est de gérer l'affichage des données sur l'écran, tel que la température, la fréquence, et le mode de fonctionnement du module kernel.
+Pour faire cela, il dispose de deux interfaces de contrôle : \\
 \begin{itemize}
-	\item Les 3 bouton present sur la carte pour augmenter/diminuer la frequence, et changer le mode de fonctionnement.
-	\item Un IPC (Inter Process Communication) pour recevoir des requetes. Dans notre cas, nous avons choisi d'utiliser un socket.
+	\item Physique : les 3 boutons présents sur la carte pour augmenter ou diminuer la fréquence et changer le mode de fonctionnement.
+	\item Logiciel : un IPC (Inter Process Communication) pour recevoir des requêtes. Dans notre cas, nous choisissons d'utiliser un socket.
 \end{itemize}
 
-Nous avons réutiliser le code fournis dans le cours comme point de départ pour la création du daemon. \\
+Nous réutilisons le code fourni dans le cours comme point de départ pour la création du démon. \\
 
-Nous avons repartie le code de notre programme dans differentes librairies afin de le rendre plus lisible, voici les fichier qui le compose, et leux contenue : \\
+Nous répartissons le code de notre programme dans différentes librairies afin de le rendre plus lisible. Voici les différents fichiers du démon et leur contenue : \\
 \begin{itemize}
 	\item \textit{main.c}\\
-	Ce fichier contien le main de notre programme, il initialise le daemon et contient le thread de reception des message du socket.
+	Ce fichier contient le main de notre programme, il initialise le démon et contient le thread de réception des messages du socket.
 	\item \textit{daemonfanlib.c/h}\\
-	Cette librairie contient les fonction necessaire a l'initialisation du socket et de la creation du daemon. Le constante qui indique le port du socket.
+	Cette librairie contient les fonctions nécessaires à l'initialisation du socket et la création du démon, ainsi que la constante qui indique le port du socket.
 	\item \textit{gpio\_utility.c/h}\\
-	Cette librairies permet d'acceder au GPIO de la carte, ainsi qu'au information fournis par le module kernel. le header contient divers constante qui permettent de definir les GPIO utilisé.
+	Cette librairies permet d'accéder aux GPIOs de la carte, ainsi qu'aux informations fournis par le module kernel. Le header contient diverses constantes qui permettent de définir les GPIOs utilisés.
 	\item \textit{ssd1306.c/h}\\
-	Cette librairies fournis les fonction utiles à l'utilisation de l'écran. Cette librairies nous à été fournis dans le cours.
+	Cette librairie fournis les fonctions utiles à l'utilisation de l'écran. Cette librairie nous a été fournie dans le cours.
 
 \end{itemize}
 \subsection{IPC Server}\label{IPCServer}
-La communication entre un processus externe et le daemon se fait par un socket. 
-Ce qui permet de controller la carte depuis n'importe quel ordinateur connecté au même réseau. 
-L'initialisation du socket se fait dans la fonction \textit{void initSocket(int *mode, int *freq, pthread\_t *thread\_id, void* (*threadFunc)(void*))} qui est appelé dans la fonction \textit{main}.
-La fonction prend un pointeur vers le mode, la frequence, et l'id du thread, ainsi qu'un pointeur vers la fonction qui sera executé par le thread. Afin de traiter les donnée recu.
+La communication entre un processus externe et le démon se fait par un socket, ce qui permet de contrôler la carte depuis n'importe quel ordinateur connecté au même réseau. 
+L'initialisation du socket se fait dans la fonction \textit{void initSocket(int *mode, int *freq, pthread\_t *thread\_id, void* (*threadFunc)(void*))} qui est appelée dans la fonction \textit{main}.
+La fonction prend un pointeur vers le mode, la fréquence, et l'id du thread, ainsi qu'un pointeur vers la fonction qui sera exécutée par le thread, afin de traiter les données reçues.
 Le socket est initialisé avec l'adresse IP de la carte, et le port 8080. \\
 
-Comme nous étions libre pour le choix du protocole de communication, nous avons choisi d'utiliser un protocole simple, qui permet de controller le mode et la frequence du module kernel.
-Le protocole est composé de 2 commandes : \\
+\newpage
+Comme nous sommes libres pour le choix du protocole de communication, nous choisissons d'utiliser un protocole simple pour contrôler le mode et la fréquence du module kernel.
+Le protocole est composé de deux commandes : \\
 \begin{itemize}
-	\item M\textit{X} : Permet de choisir le mode de fonctionnement du module kernel. \textit{X} peut prendre 2 valeurs : 0 pour le mode manuel, et 1 pour le mode automatique.
-	\item F\textit{XXX} : Permet de changer la fréquence de clignotement de la LED. \textit{XXX} est un nombre entre 0 et 999.
+	\item M\textit{X} : Permets de choisir le mode de fonctionnement du module kernel. \textit{X} peut prendre 2 valeurs : 0 pour le mode manuel, et 1 pour le mode automatique.
+	\item F\textit{XXX} : Permets de changer la fréquence de clignotement de la LED. \textit{XXX} est un nombre entre 0 et 999.
 \end{itemize}
 
-Par exemple envoyer "M0", puis "F5" aura pour effet de mettre le mode manuel, et de mettre la fréquence de clignotement à 5 Hz.
+Par exemple, envoyer "M0", puis "F5" a pour effet de mettre le mode manuel et la fréquence de clignotement à 5 Hz.
 
-Voici le code du thread qui vas s'occuper de traiter les donnée recu par le socket : \\
+Voici le code du thread qui s'occupe de traiter les données reçues par le socket : \\
 \begin{lstlisting}[style=CStyle]
 static void *threadSocket(void *arg)
 {
@@ -294,13 +294,14 @@ static void *threadSocket(void *arg)
 	return NULL;
 }
 \end{lstlisting}
-Le thread vas attendre qu'un client se connecte, puis il vas lire les donnée recu, et les traiter.
-Si le client se déconnecte, le thread vas attendre qu'un nouveau client se connecte.
-Le code ne permet pas à plusieur client de se connecter en même temps, mais il serais possible de le faire en créant un thread qui attend des connection, et qui créer un nouveau thread pour chaque client qui se connecte. \\
+Le thread attend qu'un client se connecte, puis lit les données reçues et les traite.
+Si le client se déconnecte, le thread attend qu'un nouveau client se connecte.
+Le code ne permet pas à plusieurs clients de se connecter simultanément, mais il est possible de le faire en créant un thread qui attend des connexions et crée un nouveau thread pour chaque client qui se connecte. \\
 
+\newpage
 \subsection{IPC Client}\label{IPCClient}
-Le control du daemon se fait par un petit programme C qui permet d'envoyer des commande au daemon.
-Nous avons ecrit une petit librairie \textit{command.c} qui contient les commande suivante pour controler le daemon en passant par le socket, voici le header de la librairie : \\
+Le contrôle du démon se fait par un petit programme C qui permet d'envoyer des commandes au démon.
+Nous avons écrit une petite librairie \textit{command.c} qui contient les commandes suivantes pour contrôler le démon en passant par le socket. Voici le header de la librairie : \\
 \begin{lstlisting}[style=CStyle]
 #define DAEMON_ADDR "127.0.0.1"
 #define DAEMON_PORT 8080
@@ -311,7 +312,9 @@ void send_freq(int freq);
 void close_socket();
 \end{lstlisting}
 
-Pour utiliser cette librairie il suffit d'appeler la fonction \textit{init\_socket()} au debut du programme, puis d'appeler les fonction \textit{send\_mode()} et \textit{send\_freq()} pour envoyer des commande au daemon, et enfin d'appeler la fonction \textit{close\_socket()} à la fin du programme. \\
+Pour utiliser cette librairie, il suffit d'appeler la fonction \textit{init\_socket()} au début du programme.
+L'appel des fonctions \textit{send\_mode()} et \textit{send\_freq()} permet d'envoyer des commandes au démon.
+La fonction \textit{close\_socket()} permet de fermer le socket. \\
 Voici un exemple d'utilisation de la librairie : \\
 \begin{lstlisting}[style=CStyle]
 int main()
@@ -334,14 +337,13 @@ int main()
 }
 \end{lstlisting}
 
-Le programme vas passer en mode manuel, puis il vas changer la frequence de clignotement de la LED, et enfin il vas passer en mode automatique.
+Ce programme permet de passer le démon en mode manuel et changer la fréquence de clignotement de la LED, puis de passer en mode automatique.
 
-
-\subsection{Control des LED}\label{Leds}
-L'acces a la LED par le daemon se fait par l'interface sysfs.
-Pour cela, nous avons créer une fonction qui permet d'initialiser les LED, et une fonction qui permet de choisir l'etat de la led rouge.
+\subsection{Contrôle de la LED rouge}\label{Leds}
+L'accès à la LED par le démon se fait par l'interface sysfs.
+Pour cela, nous avons créé une fonction qui permet d'initialiser la LED et une fonction qui permet de choisir l'état de la LED rouge.
 Le prototype de la fonction d'écriture est : \textit{void writeLed(int value)}.
-Voici le code d'initialisation des LED : \\
+Voici le code d'initialisation de la LED : \\
 \begin{lstlisting}[style=CStyle]
 void initLeds()
 {
@@ -362,23 +364,23 @@ void initLeds()
 	syslog(LOG_INFO, "leds initialized\n");
 }
 \end{lstlisting}
-Le code commence par exporter les LED, puis il configure les LED en sortie, en écrivant "out" dans le fichier direction.
-Enfin, il ouvre le fichier value, qui permet d'écrire dans la LED. Le descripteur de fichier est stocké dans la variable globale \textit{g\_led\_fd}. \\
-Pour finir un simple appel a la fonction \textit{void writeLed(int value)} permet de changer l'etat de la LED rouge.
+Le code commence par exporter la LED, puis configure la LED en sortie, en écrivant "out" dans le fichier direction.
+Enfin, il ouvre le fichier value, qui permet d'écrire dans la valeur de la LED. Le descripteur de fichier est stocké dans la variable globale \textit{g\_led\_fd}. \\
+Pour finir un simple appel à la fonction \textit{void writeLed(int value)} permet de changer l'état de la LED rouge.
 
 
 \subsection{Bouton}\label{Bouton}
-Pour réaliser cette partie du TP, nous avons en partie réutilisé le code que nous avions écrit pour le rendu precedent.
+Pour réaliser cette partie du TP, nous réutilisons en partie le code que nous avons écrit pour le rendu précédent.
 Notre code utilise les epoll pour gérer les interruptions des boutons.
-afin de rendre le code main plus lisible, nous avons écrit une fonction \textit{int initButtonsAndTimer()} qui permet d'initialiser les boutons, et un timer pour etre utiliser avec les epoll.
-Cette fonction fais appel au fonction epoll\_create1(), epoll\_ctl(), et timerfd\_create() pour créer les epoll et le timer.
-puis elle retourne un descripteur de fichier qui permet de lire les evenement sur les boutons, et le timer.
+Afin de rendre le code main plus lisible, nous avons écrit une fonction \textit{int initButtonsAndTimer()} qui permet d'initialiser les boutons, et un timer pour être utilisé avec les epoll.
+Cette fonction fait appel aux fonctions epoll\_create1(), epoll\_ctl(), et timerfd\_create() pour créer les epoll et le timer.
+Elle retourne un descripteur de fichier qui permet de lire les évènements sur les boutons, et le timer.
 \begin{lstlisting}[style=CStyle]
 // init the buttons S1, S2 and S3, and the timer
 epfd = initButtonsAndTimer();
 \end{lstlisting}
-L'attente des evenement sur les bouton s'effectue dans le main avec la fonction \textit{epoll\_wait()}.
-Voici un extrait du code main, qui permet de lire les evenement sur les boutons : \\
+L'attente des évènements sur les boutons s'effectue dans le main avec la fonction \textit{epoll\_wait()}.
+Voici un extrait du code main, qui permet de lire les évènements sur les boutons : \\
 \begin{lstlisting}[style=CStyle]
 while (1) {
 	struct epoll_event event_arrived[NUM_EVENTS];
@@ -408,9 +410,9 @@ while (1) {
 		// ...
 \end{lstlisting}
 
-Dans le epoll, nous avons aussi ajouté le timer, qui permet de raffraichir l'affichage de la température, et de la fréquence en mode automatique.
-Le timer est initialisé avec une periode de 200ms, il est possible de le modifier dans le fichier gpio\_utility.h, en modifiant la constante \textit{DEFAULT\_PERIOD}.
-Voici un extrait de la gestion de l'evevement timer : \\
+Dans l'epoll, nous ajoutons un timer, qui permet de rafraichir l'affichage de la température et de la fréquence en mode automatique.
+Le timer est initialisé avec une période de 200ms, il est possible de le modifier dans le fichier gpio\_utility.h, en modifiant la constante \textit{DEFAULT\_PERIOD}.
+Voici un extrait de la gestion de l'évènement timer : \\
 \begin{lstlisting}[style=CStyle]
 case EV_TIMER:
 syslog(LOG_INFO, "timer expired\n");
@@ -429,9 +431,10 @@ else // if in manual mode
 break;
 \end{lstlisting}
 
+\newpage
 \subsection{Concurence}
-Comme notre programme est multithreadé (thread socket et thread main), il est possible d'avoir des problèmes de concurence. Pour eviter cela nous avons ajouter un mutex sur les commande envoyé au LCD.
-Les variable de mode et de fréquence sont aussi partagé, et peuvent etre modifié par le thread socket, et par le main. Mais dans ce cas, les risques sont assez faible, il faudrait qu'un requette soit envoyé au moment ou quelqun écrit sur le socket. Toutefois, nous devrions aussi protégé l'acces à ces variables.
+Comme notre programme est multithreadé (thread socket et thread main), il est possible d'avoir des problèmes de concurrence. Pour éviter cela, nous ajoutons un mutex sur les commandes envoyées au LCD.
+Les variables de mode et de fréquence sont aussi partagées. Elles peuvent être modifiées par le thread socket et par le main. Mais les risques d'accès simultané sont assez faibles, il faudrait qu'une requête soit envoyée au moment ou quelqu'un écrit sur le socket. L'accès à ces variables devrait également être protégé par un mutex.
 Exemple de protection dans la fonction \textit{void writeLCDFreq(int freq)} : \\
 \begin{lstlisting}[style=CStyle]
 void writeLCDFreq(int freq)
@@ -444,18 +447,16 @@ void writeLCDFreq(int freq)
     pthread_mutex_unlock(&g_mutex_lcd);
 }
 \end{lstlisting}
-Sans cela deux thread essayait d'écrire en meme temps sur le LCD, et le texte n'était pas affiché correctement.
+Sans cette protection, deux threads essayaient d'écrire en même temps sur le LCD, et le texte n'était pas affiché correctement.
 
 \section{Conclusion}
-Notre programme fonctionne correctement, le raffraichissement de la temperature est bien effectué. Et lorsque que nous somme en mode automatique, la frequence actuellement utilisé est aussi actualisé.
-Le control de la frequence en mode manuel fonctionne correctement, et nous avons ajouté une ligne d'affichage pour indiquer le mode actuel.
-Il es possible de controler notre daemon avec un client socket, et de changer le mode, la frequence. Comme la communication passe par un socket, il est possible de controler le daemon depuis un autre ordinateur.
-Ce qui peut etre une fonctionnalité interessante, ou un probleme de securité. Nous pourrions mettre une regle dans le firewall, pour n'autoriser que certaine adresse IP à se connecter au socket.
+Notre programme fonctionne correctement, le rafraichissement de la température est bien effectué et la fréquence est actualisé en mode automatique.
+Le contrôle de la fréquence en mode manuel fonctionne correctement. Nous affichons également une ligne supplémentaire pour indiquer le mode actuel.
+Il est possible de contrôler notre démon avec un socket client sur le réseau pour changer le mode et la fréquence. Ce qui peut être une fonctionnalité intéressante ou un problème de sécurité. Nous pouvons mettre une règle dans le pare-feu, pour n'autoriser que certaines adresses IP à se connecter au socket.
 \linebreak
 \linebreak
-Dans un soucis de propreté, nous voulions eviter d'utiliser un timer dans le daemon pour raffraichir l'affichage car un timer est deja present dans le module kernel. Nous avons chercher des solutions pour detecter les changement de valeur de ces variables comme les epoll pour les ficher se trouvant dans /sys/class.
-Comme nous n'avons pas trouvé de solution satisfaisante. Nous avons donc opté pour un timer, qui permet de raffraichir l'affichage toutes les 200ms.
-Nous avons trouver ce projet interessant, il nous a permis de mettre en pratique beaucoup de concept vu en cours, et de nous familiariser avec les daemon.
+Pour garder un code propre, nous voulions éviter l'utilisation d'un timer dans le démon pour le rafraichissement de l'affichage. Un timer étant déjà présent dans le module kernel, cette solution nous semblait redondante. Nous avons donc cherché à utiliser les epoll pour détecter les changements de valeur des variables de température et de fréquence sur les attributs de /sys/class comme cela est fait pour les GPIOs. Cependant, nous n'avons pas trouvé de solution pour une telle implémentation. Nous avons donc opté pour un timer, qui permet de rafraichir l'affichage toutes les 200ms.
+Nous avons trouvé ce projet intéressant, il nous a permis de mettre en pratique beaucoup de concept vu en cours et de nous familiariser avec les démons.
 
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
