@@ -218,7 +218,7 @@ Son objectif sera de gerer l'affichage des donnée sur l'ecran, tel que la tempe
 Pour faire cela, il dispose de 2 interface de controle : \\
 \begin{itemize}
 	\item Les 3 bouton present sur la carte pour augmenter/diminuer la frequence, et changer le mode de fonctionnement.
-	\item un IPC (Inter Process Communication) pour communiquer avec le module kernel. Dans notre cas, nous avons choisi d'utiliser un socket.
+	\item Un IPC (Inter Process Communication) pour recevoir des requetes. Dans notre cas, nous avons choisi d'utiliser un socket.
 \end{itemize}
 
 Nous avons réutiliser le code fournis dans le cours comme point de départ pour la création du daemon. \\
@@ -235,14 +235,14 @@ Nous avons repartie le code de notre programme dans differentes librairies afin 
 	Cette librairies fournis les fonction utiles à l'utilisation de l'écran. Cette librairies nous à été fournis dans le cours.
 
 \end{itemize}
-\subsection{IPC}\label{IPC}
+\subsection{IPC Server}\label{IPCServer}
 La communication entre un processus externe et le daemon se fait par un socket. 
 Ce qui permet de controller la carte depuis n'importe quel ordinateur connecté au même réseau. 
 L'initialisation du socket se fait dans la fonction \textit{void initSocket(int *mode, int *freq, pthread\_t *thread\_id, void* (*threadFunc)(void*))} qui est appelé dans la fonction \textit{main}.
 La fonction prend un pointeur vers le mode, la frequence, et l'id du thread, ainsi qu'un pointeur vers la fonction qui sera executé par le thread. Afin de traiter les donnée recu.
-Le socket est initialisé avec l'adresse IP de la carte, et le port 8080. \\
+Le socket est initialisé sur le port 8080. \\
 
-Comme nous étions libre pour le choix du protocole de communication, nous avons choisi d'utiliser un protocole simple, qui permet de controller le mode et la frequence du module kernel.
+Comme nous étions libre pour le choix du protocole de communication, nous avons choisi d'utiliser un protocole simple, qui permet de controller le mode et la frequence que le daemon appliquera au module kernel.
 Le protocole est composé de 2 commandes : \\
 \begin{itemize}
 	\item M\textit{X} : Permet de choisir le mode de fonctionnement du module kernel. \textit{X} peut prendre 2 valeurs : 0 pour le mode manuel, et 1 pour le mode automatique.
@@ -294,6 +294,44 @@ static void *threadSocket(void *arg)
 Le thread vas attendre qu'un client se connecte, puis il vas lire les donnée recu, et les traiter.
 Si le client se déconnecte, le thread vas attendre qu'un nouveau client se connecte.
 Le code ne permet pas à plusieur client de se connecter en même temps, mais il serais possible de le faire en créant un thread qui attend des connection, et qui créer un nouveau thread pour chaque client qui se connecte. \\
+
+\subsection{IPC Client}\label{IPCClient}
+Le control du daemon se fait par un petit programme C qui permet d'envoyer des commande au daemon.
+Nous avons ecrit une petit librairie \textit{command.c} qui contient les commande suivante pour controler le daemon en passant par le socket, voici le header de la librairie : \\
+\begin{lstlisting}[style=CStyle]
+#define DAEMON_ADDR "127.0.0.1"
+#define DAEMON_PORT 8080
+
+void init_socket();
+void send_mode(int mode);
+void send_freq(int freq);
+void close_socket();
+\end{lstlisting}
+
+Pour utiliser cette librairie il suffit d'appeler la fonction \textit{init\_socket()} au debut du programme, puis d'appeler les fonction \textit{send\_mode()} et \textit{send\_freq()} pour envoyer des commande au daemon, et enfin d'appeler la fonction \textit{close\_socket()} à la fin du programme. \\
+Voici un exemple d'utilisation de la librairie : \\
+\begin{lstlisting}[style=CStyle]
+int main()
+{
+	// try to pass to manual mode
+	init_socket();
+	// set mode to manual
+	send_mode(0);
+	// set freq to 20Hz
+	send_freq(20);
+	usleep(1000000); // wait 1s
+	// set freq to 2Hz
+	send_freq(2);
+	// wait 2s
+	usleep(2000000);
+	// set mode to auto
+	send_mode(1);
+	close_socket();
+	return 0;
+}
+\end{lstlisting}
+
+Le programme vas passer en mode manuel, puis il vas changer la frequence de clignotement de la LED, et enfin il vas passer en mode automatique.
 
 
 \subsection{Control des LED}\label{Leds}
@@ -372,7 +410,6 @@ Le timer est initialisé avec une periode de 200ms, il est possible de le modifi
 Voici un extrait de la gestion de l'evevement timer : \\
 \begin{lstlisting}[style=CStyle]
 case EV_TIMER:
-// read the actual mode
 syslog(LOG_INFO, "timer expired\n");
 updateTempCPU();
 if(mode == 1) // if in auto mode
@@ -390,8 +427,8 @@ break;
 \end{lstlisting}
 
 \subsection{Concurence}
-Comme notre programme est multithreadé (thread socket et thread main), il est possible d'avoir des problèmes de concurence. Pour eviter cela nous avons ajouter un mutex ces les commande envoyé au LCD.
-Les variable de mode et de frequence sont aussi partagé, et peuvent etre modifié par le thread socket, et par le main. mais dans ce cas, les risques sont assez faible, il faudrait qu'un requette soit envoyé au moment au quelqun écrit sur le socket.
+Comme notre programme est multithreadé (thread socket et thread main), il est possible d'avoir des problèmes de concurence. Pour eviter cela nous avons ajouter un mutex sur les commande envoyé au LCD.
+Les variable de mode et de fréquence sont aussi partagé, et peuvent etre modifié par le thread socket, et par le main. Mais dans ce cas, les risques sont assez faible, il faudrait qu'un requette soit envoyé au moment ou quelqun écrit sur le socket. Toutefois, nous devrions aussi protégé l'acces à ces variables.
 Exemple de protection dans la fonction \textit{void writeLCDFreq(int freq)} : \\
 \begin{lstlisting}[style=CStyle]
 void writeLCDFreq(int freq)
@@ -407,9 +444,15 @@ void writeLCDFreq(int freq)
 Sans cela deux thread essayait d'écrire en meme temps sur le LCD, et le texte n'était pas affiché correctement.
 
 \section{Conclusion}
-
-VROOM VROOM ...
-
+Notre programme fonctionne correctement, le raffraichissement de la temperature est bien effectué. Et lorsque que nous somme en mode automatique, la frequence actuellement utilisé est aussi actualisé.
+Le control de la frequence en mode manuel fonctionne correctement, et nous avons ajouté une ligne d'affichage pour indiquer le mode actuel.
+Il es possible de controler notre daemon avec un client socket, et de changer le mode, la frequence. Comme la communication passe par un socket, il est possible de controler le daemon depuis un autre ordinateur.
+Ce qui peut etre une fonctionnalité interessante, ou un probleme de securité. Nous pourrions mettre une regle dans le firewall, pour n'autoriser que certaine adresse IP à se connecter au socket.
+\linebreak
+\linebreak
+Dans un soucis de propreté, nous voulions eviter d'utiliser un timer dans le daemon pour raffraichir l'affichage car un timer est deja present dans le module kernel. Nous avons chercher des solutions pour detecter les changement de valeur de ces variables comme les epoll pour les ficher se trouvant dans /sys/class.
+Comme nous n'avons pas trouvé de solution satisfaisante. Nous avons donc opté pour un timer, qui permet de raffraichir l'affichage toutes les 200ms.
+Nous avons trouver ce projet interessant, il nous a permis de mettre en pratique beaucoup de concept vu en cours, et de nous familiariser avec les daemon.
 
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
