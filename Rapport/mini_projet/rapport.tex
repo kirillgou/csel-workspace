@@ -83,10 +83,13 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INTRO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}\label{Introduction}
-Le projet est composé de 2 parties : \\
+% \footnote{\href{link}{text\_link}}
+Le but de ce projet est de concevoir un contrôleur de refroidissement pour un système embarqué. Notre système est composé d'un NanoPi NEO Plus2\footnote{\href{https://wiki.friendlyelec.com/wiki/index.php/NanoPi_NEO_Plus2}{https://wiki.friendlyelec.com/wiki/index.php/NanoPi\_NEO\_Plus2}} et d'un module NanoHat OLED\footnote{\href{https://www.friendlyelec.com/index.php?route=product/product&product_id=191&search=NanoPi+NEO+Plus2&description=true&category_id=0&sub_category=true}{https://www.friendlyelec.com/index.php?route=product/product\&product\_id=191\&search=NanoPi+NEO+Plus2\&\\description=true\&category\_id=0\&sub\_category=true}} comportant un Display OLED. Notre système ne dispose pas d'un refroidissement actif, comme un ventilateur, nous simulons ce refroidissement par le clignotement d'une LED.\\
+
+Notre projet est composé de 2 parties : \\
 \begin{itemize}
-	\item Un module kernel qui permet de controler la frequence du processeur, et de changer le mode de fonctionnement du module kernel. Et il met a disposition les informations sur la temperature du CPU.
-	\item Un daemon qui permet d'afficher les informations sur l'ecran, et de controler le module kernel.
+	\item Un module kernel qui permet de contrôler la fréquence de la LED, de changer le mode de fonctionnement du module kernel, ainsi que de récupérer les informations sur la température du CPU.
+	\item Un daemon qui permet d'afficher les informations sur l'écran, et de contrôler le module kernel.
 \end{itemize}
 
 
@@ -100,11 +103,11 @@ Ce module kernel a pour but de gérer le refroidissement de notre système embar
 
 Le module met à disposition une interface de contrôle à travers $sysfs$ permettant de modifier le mode de fonctionnement, la fréquence de la Modulation de largeur d'impulsion (PWM) et de lire la température du microprocesseur. \\
 
-Toute la communication avec le module se fait à travers les attribus de la class. Nous en mettons trois à disposition :
+Toute la communication avec le module se fait à travers les attributs de la class. Nous en mettons trois à disposition :
 \begin{itemize}
-	\item $auto\_config$ : Permet de lire et modifier le mode de fonctionnement du module. Il peut prendre deux valeurs : $0$ pour le mode manuel et $1$ pour le mode automatique.
-	\item $frequency\_Hz$ : Permet de lire et modifier la fréquence en Hz du PWM si le mode manuel est activé. La valeur $0$ permette d'arrêter le PWM et tout autre valeur positive fixe la fréquence du PWM, 
-	\item $temperature\_mC$ : Permet de lire la température du microprocesseur en millidegré celsius.
+	\item $auto\_config$ : Permets de lire et modifier le mode de fonctionnement du module. Il peut prendre deux valeurs : $0$ pour le mode manuel et $1$ pour le mode automatique.
+	\item $frequency\_Hz$ : Permets de lire et modifier la fréquence en Hz du PWM si le mode manuel est activé. La valeur $0$ permet d'arrêter le PWM et toute autre valeur positive fixe la fréquence du PWM, 
+	\item $temperature\_mC$ : Permets de lire la température du microprocesseur en millidegré Celsius.
 \end{itemize}
 
 La mise en place des attributs se fait de la manière suivante :
@@ -164,7 +167,7 @@ static int __init my_module_init(void){
 }
 \end{lstlisting}
 
-Les callbacks des timers nous permettent de mettre à jour la temperature avec laquelle nous recalculons la nouvelle frequence du PWM et de créer un signal PWM avec un duty cycle de 50\% et la fréquence voulue. \\
+Les callbacks des timers nous permettent de mettre à jour la température avec laquelle nous recalculons la nouvelle fréquence du PWM et de créer un signal PWM avec un duty cycle de 50\% et la fréquence voulue. \\
 Nos deux callbacks sont les suivantes :
 \begin{lstlisting}[style=CStyle]
 void timer_temprature_callback(struct timer_list *timer){
@@ -214,10 +217,10 @@ La fonction $thermal\_zone\_get\_zone\_by\_name()$ permet de récupérer la zone
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DAEMON %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Daemon}\label{Daemon}
 Un Daemon est un programme qui s'execute en arriere plan. 
-Son objectif sera de gerer l'affichage des donnée sur l'ecran, tel que la temperature, frequence, et le mode de fonctionnement du module kernel.
+Son objectif sera de gerer l'affichage des donnée sur l'écran, tel que la température, fréquence, et le mode de fonctionnement du module kernel.
 Pour faire cela, il dispose de 2 interface de controle : \\
 \begin{itemize}
-	\item Les 3 bouton present sur la carte pour augmenter/diminuer la frequence, et changer le mode de fonctionnement.
+	\item Les 3 bouton present sur la carte pour augmenter/diminuer la fréquence, et changer le mode de fonctionnement.
 	\item un IPC (Inter Process Communication) pour communiquer avec le module kernel. Dans notre cas, nous avons choisi d'utiliser un socket.
 \end{itemize}
 
@@ -239,17 +242,17 @@ Nous avons repartie le code de notre programme dans differentes librairies afin 
 La communication entre un processus externe et le daemon se fait par un socket. 
 Ce qui permet de controller la carte depuis n'importe quel ordinateur connecté au même réseau. 
 L'initialisation du socket se fait dans la fonction \textit{void initSocket(int *mode, int *freq, pthread\_t *thread\_id, void* (*threadFunc)(void*))} qui est appelé dans la fonction \textit{main}.
-La fonction prend un pointeur vers le mode, la frequence, et l'id du thread, ainsi qu'un pointeur vers la fonction qui sera executé par le thread. Afin de traiter les donnée recu.
+La fonction prend un pointeur vers le mode, la fréquence, et l'id du thread, ainsi qu'un pointeur vers la fonction qui sera executé par le thread. Afin de traiter les donnée recu.
 Le socket est initialisé avec l'adresse IP de la carte, et le port 8080. \\
 
-Comme nous étions libre pour le choix du protocole de communication, nous avons choisi d'utiliser un protocole simple, qui permet de controller le mode et la frequence du module kernel.
+Comme nous étions libre pour le choix du protocole de communication, nous avons choisi d'utiliser un protocole simple, qui permet de controller le mode et la fréquence du module kernel.
 Le protocole est composé de 2 commandes : \\
 \begin{itemize}
 	\item M\textit{X} : Permet de choisir le mode de fonctionnement du module kernel. \textit{X} peut prendre 2 valeurs : 0 pour le mode manuel, et 1 pour le mode automatique.
-	\item F\textit{XXX} : Permet de changer la frequence de clignotement de la LED. \textit{XXX} est un nombre entre 0 et 999.
+	\item F\textit{XXX} : Permet de changer la fréquence de clignotement de la LED. \textit{XXX} est un nombre entre 0 et 999.
 \end{itemize}
 
-Par exemple envoyer "M0", puis "F5" aura pour effet de mettre le mode manuel, et de mettre la frequence de clignotement à 5 Hz.
+Par exemple envoyer "M0", puis "F5" aura pour effet de mettre le mode manuel, et de mettre la fréquence de clignotement à 5 Hz.
 
 Voici le code du thread qui vas s'occuper de traiter les donnée recu par le socket : \\
 \begin{lstlisting}[style=CStyle]
@@ -367,7 +370,7 @@ while (1) {
 		// ...
 \end{lstlisting}
 
-Dans le epoll, nous avons aussi ajouté le timer, qui permet de raffraichir l'affichage de la temperature, et de la frequence en mode automatique.
+Dans le epoll, nous avons aussi ajouté le timer, qui permet de raffraichir l'affichage de la température, et de la fréquence en mode automatique.
 Le timer est initialisé avec une periode de 200ms, il est possible de le modifier dans le fichier gpio\_utility.h, en modifiant la constante \textit{DEFAULT\_PERIOD}.
 Voici un extrait de la gestion de l'evevement timer : \\
 \begin{lstlisting}[style=CStyle]
@@ -391,7 +394,7 @@ break;
 
 \subsection{Concurence}
 Comme notre programme est multithreadé (thread socket et thread main), il est possible d'avoir des problèmes de concurence. Pour eviter cela nous avons ajouter un mutex ces les commande envoyé au LCD.
-Les variable de mode et de frequence sont aussi partagé, et peuvent etre modifié par le thread socket, et par le main. mais dans ce cas, les risques sont assez faible, il faudrait qu'un requette soit envoyé au moment au quelqun écrit sur le socket.
+Les variable de mode et de fréquence sont aussi partagé, et peuvent etre modifié par le thread socket, et par le main. mais dans ce cas, les risques sont assez faible, il faudrait qu'un requette soit envoyé au moment au quelqun écrit sur le socket.
 Exemple de protection dans la fonction \textit{void writeLCDFreq(int freq)} : \\
 \begin{lstlisting}[style=CStyle]
 void writeLCDFreq(int freq)
